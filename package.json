@@ -1,0 +1,39 @@
+{
+  "name": "taskach",
+  "version": "0.0.1",
+  "description": "",
+  "author": "numfin",
+  "license": "MIT",
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "rollup -c rollup.config.js",
+    "build:docker": "docker build -t keo-api .",
+    "start:docker": "docker run -it -p 5000:5000 keo-api",
+    "start:db": "gcloud beta emulators datastore start",
+    "dev": "$(gcloud beta emulators datastore env-init) && npm run build -- -w"
+  },
+  "dependencies": {
+    "@google-cloud/datastore": "^5.1.0",
+    "@google-cloud/firestore": "^3.8.0",
+    "@nestjs/common": "^7.1.0",
+    "@nestjs/core": "^7.1.0",
+    "@nestjs/platform-express": "^7.1.0",
+    "class-transformer": "^0.2.3",
+    "class-validator": "^0.12.2",
+    "cuid": "^2.1.8",
+    "helmet": "^3.22.0",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^6.5.5"
+  },
+  "devDependencies": {
+    "@rollup/plugin-alias": "^3.1.0",
+    "@rollup/plugin-run": "^2.0.2",
+    "@types/express": "^4.17.6",
+    "@types/helmet": "0.0.47",
+    "@types/node": "^14.0.5",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.10.9",
+    "rollup-plugin-typescript2": "^0.27.1",
+    "typescript": "^3.9.3"
+  }
+}

@@ -1,0 +1,34 @@
+steps:
+  # build the container image
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "gcr.io/$PROJECT_ID/$REPO_NAME/$BRANCH_NAME/$SHORT_SHA",
+        ".",
+      ]
+    # push the container image to Container Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/$PROJECT_ID/$REPO_NAME/$BRANCH_NAME/$SHORT_SHA"]
+    # Deploy container image to Cloud Run
+  - name: "gcr.io/cloud-builders/gcloud"
+    args:
+      [
+        "beta",
+        "run",
+        "deploy",
+        "$REPO_NAME-$BRANCH_NAME",
+        "--image",
+        "gcr.io/$PROJECT_ID/$REPO_NAME/$BRANCH_NAME/$SHORT_SHA",
+        "--region",
+        "europe-west1",
+        "--platform",
+        "managed",
+        "--quiet",
+        "--allow-unauthenticated",
+        "--labels",
+        "branch=$BRANCH_NAME",
+      ]
+images:
+  - gcr.io/$PROJECT_ID/$REPO_NAME/$BRANCH_NAME/$SHORT_SHA
