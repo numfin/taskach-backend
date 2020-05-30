@@ -18,6 +18,7 @@ const config = {
   external: [
     "@nestjs/core",
     "@nestjs/common",
+    "@nestjs/graphql",
     "@google-cloud/datastore",
     "class-validator",
     "helmet",
