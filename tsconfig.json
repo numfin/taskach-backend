@@ -11,12 +11,16 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "paths": {
-      "src/*": ["src/*"]
+      "src/*": ["src/*"],
+      "lib/*": ["lib/*"]
     },
     "incremental": true,
     "esModuleInterop": true,
-    "strict": true
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "strict": true,
+    "strictFunctionTypes": false
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "lib/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
