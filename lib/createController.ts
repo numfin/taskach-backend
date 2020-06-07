@@ -3,23 +3,7 @@ import { Either, isRight, right } from "fp-ts/lib/Either";
 import { createHttpError, HttpError } from "./httpError";
 import { IncomingMessage } from "http";
 import { parseRequest } from "./parseRequest";
-
-function createParser<T>(type: t.Type<T>): (data: T) => Either<HttpError, T> {
-  return (data: T) => {
-    const decoded = type.decode(data);
-    if (isRight(decoded)) {
-      return right(decoded.right);
-    }
-    const errors = decoded.left.reduce((acc, { context }) => {
-      const { type } = context[context.length - 1];
-      const key = context.flatMap(({ key }) => (key ? [key] : [])).join(".");
-      const message = type.name;
-      acc[key] = [message];
-      return acc;
-    }, {} as Record<string, string[]>);
-    return createHttpError({ code: (c) => c.NotValid, errors });
-  };
-}
+import { validate, validateOrReject } from "class-validator";
 
 interface Handler<T> {
   input: T;
@@ -44,12 +28,13 @@ export function createController<Input>({
   input,
   handler,
 }: ControllerParams<Input>): Controller {
-  const parseData = createParser(input);
-
   return async function Controller(req: IncomingMessage) {
     try {
       const data = await parseRequest(req);
-      const eitherInput = parseData(data);
+      try {
+        const dataValidated = await validateOrReject(data);
+
+      }
       if (isRight(eitherInput)) {
         return handler({
           input: eitherInput.right,

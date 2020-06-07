@@ -1,5 +1,5 @@
 import { Controller } from "./createController";
-import { ErrorController } from "./error.controller";
+import { ErrorController } from "./notFound.controller";
 
 export type ControllerMap = Record<string, Record<string, Controller>>;
 

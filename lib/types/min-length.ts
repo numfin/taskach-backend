@@ -6,11 +6,14 @@ interface MinLengthBrand {
 export function minLength(len: number) {
   const err = `Should be longer than ${len} symbols`;
 
-  return t.brand(
+  return t.union([
     t.string,
-    function (s): s is t.Branded<string, MinLengthBrand> {
-      return s.trim().length > len;
-    },
-    err
-  );
+    t.brand(
+      t.string,
+      function (s): s is t.Branded<string, MinLengthBrand> {
+        return s.trim().length > len;
+      },
+      err
+    ),
+  ]);
 }
