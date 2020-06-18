@@ -1,9 +1,9 @@
 [package]
 name = "taskach-backend"
 version = "0.1.0"
-authors = ["Aleksandr Paramonov <aleksandr.paramonov@vrbank.ru>"]
+authors = ["NumbleFingers <numfin>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+hyper = "0.13.6"
+tokio = {version="0.2.21", features=["full"]}

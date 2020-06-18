@@ -1,0 +1,45 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'taskach-backend'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=taskach-backend",
+          "--package=taskach-backend"
+        ],
+        "filter": {
+          "name": "taskach-backend",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'taskach-backend'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=taskach-backend",
+          "--package=taskach-backend"
+        ],
+        "filter": {
+          "name": "taskach-backend",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
