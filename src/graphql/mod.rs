@@ -2,10 +2,18 @@ pub mod handlers;
 pub mod mutations;
 pub mod queries;
 
-use juniper::RootNode;
+use juniper::{EmptySubscription, RootNode};
 
-type Schema = RootNode<'static, queries::QueryRoot, mutations::MutationRoot>;
+pub struct Context {}
+impl juniper::Context for Context {}
+
+type Schema =
+    RootNode<'static, queries::QueryRoot, mutations::MutationRoot, EmptySubscription<Context>>;
 
 pub fn create_schema() -> Schema {
-    Schema::new(queries::QueryRoot {}, mutations::MutationRoot {})
+    Schema::new(
+        queries::QueryRoot {},
+        mutations::MutationRoot {},
+        EmptySubscription::<Context>::new(),
+    )
 }

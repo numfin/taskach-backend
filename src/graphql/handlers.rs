@@ -1,24 +1,16 @@
 use crate::graphql::Schema;
 use actix_web::{web, Error, HttpResponse};
-use juniper::http::{playground::playground_source, GraphQLRequest};
-use std::sync::Arc;
+use juniper_actix::{graphql_handler, playground_handler};
 
-pub async fn graphiql() -> HttpResponse {
-    let html = playground_source("/graphql");
-    HttpResponse::Ok()
-        .content_type("text/html; charset=utf-8")
-        .body(html)
+pub async fn graphiql() -> Result<HttpResponse, Error> {
+    playground_handler("/graphql", None).await
 }
+
 pub async fn graphql(
-    st: web::Data<Arc<Schema>>,
-    data: web::Json<GraphQLRequest>,
+    req: actix_web::HttpRequest,
+    payload: actix_web::web::Payload,
+    schema: web::Data<Schema>,
 ) -> Result<HttpResponse, Error> {
-    let user = web::block(move || {
-        let res = data.execute(&st, &());
-        Ok::<_, serde_json::error::Error>(serde_json::to_string(&res)?)
-    })
-    .await?;
-    Ok(HttpResponse::Ok()
-        .content_type("application/json")
-        .body(user))
+    let context = &super::Context {};
+    graphql_handler(&schema, context, req, payload).await
 }

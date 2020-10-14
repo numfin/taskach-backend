@@ -1,7 +1,7 @@
 use juniper::{FieldError, FieldResult};
 
 pub struct MutationProjects;
-#[juniper::object]
+#[juniper::graphql_object]
 impl MutationProjects {
     #[graphql(description = "Create project")]
     fn create(new_project: super::NewProjectInput) -> FieldResult<super::Project> {

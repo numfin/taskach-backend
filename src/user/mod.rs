@@ -9,7 +9,9 @@ use chrono::{prelude::*, DateTime};
 #[graphql(description = "A user in a taskach system")]
 pub struct User {
     id: uuid::Uuid,
+    /// имя
     first_name: String,
+    /// фамилия
     last_name: String,
     email: String,
     phone: String,

@@ -2,7 +2,7 @@ use diesel::result::{DatabaseErrorKind::UniqueViolation, Error::DatabaseError};
 use juniper::{FieldError, FieldResult};
 
 pub struct MutationUsers;
-#[juniper::object]
+#[juniper::graphql_object]
 impl MutationUsers {
     fn register(new_user: super::NewUserInput) -> FieldResult<super::User> {
         super::service::create_user(&new_user).map_err(|err| match err {
