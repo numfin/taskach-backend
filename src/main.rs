@@ -17,7 +17,8 @@ async fn main() -> io::Result<()> {
     env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
 
-    println!("Graphiql working on http://localhost:8080/graphiql");
+    let addr = "127.0.0.1:8081";
+    println!("Graphiql working on http://{}/graphiql", addr);
 
     HttpServer::new(move || {
         App::new()
@@ -25,7 +26,7 @@ async fn main() -> io::Result<()> {
             .wrap(middleware::Logger::default())
             .configure(config::config)
     })
-    .bind("127.0.0.1:8081")?
+    .bind(addr)?
     .run()
     .await
 }
