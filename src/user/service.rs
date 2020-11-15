@@ -1,28 +1,39 @@
-use crate::db;
-use diesel::{prelude::*, QueryResult};
+use crate::firestore::prelude::*;
 
-pub fn get_user(id: &uuid::Uuid) -> QueryResult<super::User> {
-    use crate::db::schema::users::dsl::users;
-    users.find(id).first(&db::connect())
+pub async fn get_user(client: &Client, id: &String) -> Response<super::User> {
+    let doc = get_doc(client, format!("users/{}", id)).await?;
+    Ok(super::doc_to_user(&doc))
 }
 
-pub fn get_all_users() -> QueryResult<Vec<super::User>> {
-    use crate::db::schema::users::dsl::users;
-
-    users.limit(10).load(&db::connect())
+pub async fn get_all_users(client: &Client) -> Response<Vec<super::User>> {
+    let docs = get_doc_list(client, "users".to_string()).await?;
+    Ok(docs
+        .iter()
+        .map(super::doc_to_user)
+        .collect::<Vec<super::User>>())
 }
 
-pub fn create_user(new_user: &super::NewUserInput) -> QueryResult<super::User> {
-    use crate::db::schema::users::dsl::users;
-
-    diesel::insert_into(users)
-        .values(new_user)
-        .get_result(&db::connect())
+pub async fn create_user(client: &Client, new_user: super::NewUserInput) -> Response<super::User> {
+    let doc = create_doc(
+        client,
+        "users".to_string(),
+        super::new_user_to_fields(new_user),
+    )
+    .await?;
+    Ok(super::doc_to_user(&doc))
 }
 
-pub fn update_user(id: &uuid::Uuid, upd_user: &super::UpdateUserInput) -> QueryResult<super::User> {
-    use crate::db::schema::users::dsl::users;
-    diesel::update(users.find(id))
-        .set(upd_user)
-        .get_result(&db::connect())
+pub async fn update_user(
+    client: &Client,
+    id: &str,
+    upd_user: super::UpdateUserInput,
+) -> Response<super::User> {
+    let doc = update_doc(
+        client,
+        format!("users/{}", id),
+        super::update_user_to_fields(upd_user),
+    )
+    .await?;
+
+    Ok(super::doc_to_user(&doc))
 }

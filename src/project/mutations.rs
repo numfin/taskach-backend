@@ -1,21 +1,27 @@
+use crate::graphql::Context;
 use juniper::{FieldError, FieldResult};
 
 pub struct MutationProjects;
-#[juniper::graphql_object]
+#[juniper::graphql_object(Context = Context)]
 impl MutationProjects {
     #[graphql(description = "Create project")]
-    fn create(new_project: super::NewProjectInput) -> FieldResult<super::Project> {
-        super::service::create_project(&new_project).map_err(|err| match err {
-            diesel::NotFound => FieldError::from("Project with current name already exists"),
-            err => FieldError::from(err),
-        })
+    async fn create(
+        new_project: super::NewProjectInput,
+        context: &Context,
+    ) -> FieldResult<super::Project> {
+        super::service::create_project(&context.client, new_project)
+            .await
+            .map_err(FieldError::from)
     }
 
     #[graphql(description = "Update project")]
-    fn update(
-        project_id: uuid::Uuid,
+    async fn update(
+        project_id: String,
         updated_project: super::UpdateProjectInput,
+        context: &Context,
     ) -> FieldResult<super::Project> {
-        super::service::update_project(&project_id, &updated_project).map_err(FieldError::from)
+        super::service::update_project(&context.client, &project_id, updated_project)
+            .await
+            .map_err(FieldError::from)
     }
 }

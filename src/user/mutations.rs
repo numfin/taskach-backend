@@ -1,22 +1,25 @@
-use diesel::result::{DatabaseErrorKind::UniqueViolation, Error::DatabaseError};
+use crate::graphql::Context;
 use juniper::{FieldError, FieldResult};
 
 pub struct MutationUsers;
-#[juniper::graphql_object]
+#[juniper::graphql_object(Context = Context)]
 impl MutationUsers {
-    fn register(new_user: super::NewUserInput) -> FieldResult<super::User> {
-        super::service::create_user(&new_user).map_err(|err| match err {
-            DatabaseError(UniqueViolation, ..) => {
-                FieldError::from(format!("User {} already exists", new_user.email))
-            }
-            err => FieldError::from(err),
-        })
+    async fn register<'a>(
+        new_user: super::NewUserInput,
+        context: &Context,
+    ) -> FieldResult<super::User> {
+        super::service::create_user(&context.client, new_user)
+            .await
+            .map_err(FieldError::from)
     }
 
-    fn update(
-        user_id: uuid::Uuid,
+    async fn update(
+        user_id: String,
         updated_user: super::UpdateUserInput,
+        context: &Context,
     ) -> FieldResult<super::User> {
-        super::service::update_user(&user_id, &updated_user).map_err(FieldError::from)
+        super::service::update_user(&context.client, &user_id, updated_user)
+            .await
+            .map_err(FieldError::from)
     }
 }
