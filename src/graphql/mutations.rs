@@ -1,6 +1,6 @@
 use super::Context;
-use crate::project::mutations::MutationProjects;
-use crate::user::mutations::MutationUsers;
+use crate::projects::mutations::MutationProjects;
+use crate::users::mutations::MutationUsers;
 
 pub struct MutationRoot;
 #[juniper::graphql_object(Context = Context)]

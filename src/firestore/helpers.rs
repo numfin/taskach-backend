@@ -1,5 +1,6 @@
 use crate::firestore::{value::ValueType, Document};
 use chrono::prelude::*;
+use juniper::ID;
 use prost_types::Timestamp;
 
 pub trait Helpers {
@@ -39,11 +40,14 @@ pub fn get_field(doc: &Document, field: &str) -> Option<ValueType> {
     }
 }
 
-pub fn get_id<'a>(doc: &'a Document) -> &'a str {
-    match doc.name.split("/").last() {
-        Some(id) => id,
-        None => "",
-    }
+pub fn get_id(doc: &Document) -> ID {
+    ID::from(
+        match doc.name.split("/").last() {
+            Some(id) => id,
+            None => "",
+        }
+        .to_string(),
+    )
 }
 pub fn get_datetime(timestamp: &Option<Timestamp>) -> DateTime<Utc> {
     if let Some(t) = timestamp {

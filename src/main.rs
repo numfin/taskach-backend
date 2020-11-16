@@ -1,9 +1,9 @@
 mod config;
 mod firestore;
 mod graphql;
-mod project;
+mod projects;
 mod scalars;
-mod user;
+mod users;
 // mod story;
 
 use actix_web::{middleware, web, App, HttpServer};

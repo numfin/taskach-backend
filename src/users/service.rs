@@ -1,6 +1,7 @@
 use crate::firestore::prelude::*;
+use juniper::ID;
 
-pub async fn get_user(client: &Client, id: &String) -> Response<super::User> {
+pub async fn get_user(client: &Client, id: ID) -> Response<super::User> {
     let doc = get_doc(client, format!("users/{}", id)).await?;
     Ok(super::doc_to_user(&doc))
 }
@@ -25,7 +26,7 @@ pub async fn create_user(client: &Client, new_user: super::NewUserInput) -> Resp
 
 pub async fn update_user(
     client: &Client,
-    id: &str,
+    id: ID,
     upd_user: super::UpdateUserInput,
 ) -> Response<super::User> {
     let doc = update_doc(

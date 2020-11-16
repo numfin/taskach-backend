@@ -4,12 +4,13 @@ pub mod service;
 
 use crate::firestore::{prelude::*, Value};
 use chrono::prelude::*;
+use juniper::ID;
 use std::collections::HashMap;
 
 #[derive(juniper::GraphQLObject)]
 #[graphql(description = "A user in a taskach system")]
 pub struct User {
-    id: String,
+    id: ID,
     /// имя
     first_name: String,
     /// фамилия
@@ -25,7 +26,7 @@ pub struct User {
 }
 pub fn doc_to_user(doc: &Document) -> User {
     User {
-        id: get_id(doc).to_string(),
+        id: get_id(doc),
         first_name: get_field(doc, "first_name").into_string(),
         last_name: get_field(doc, "last_name").into_string(),
         email: get_field(doc, "email").into_string(),

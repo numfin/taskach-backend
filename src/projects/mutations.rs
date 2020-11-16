@@ -1,5 +1,5 @@
 use crate::graphql::Context;
-use juniper::{FieldError, FieldResult};
+use juniper::{FieldError, FieldResult, ID};
 
 pub struct MutationProjects;
 #[juniper::graphql_object(Context = Context)]
@@ -16,11 +16,11 @@ impl MutationProjects {
 
     #[graphql(description = "Update project")]
     async fn update(
-        project_id: String,
+        project_id: ID,
         updated_project: super::UpdateProjectInput,
         context: &Context,
     ) -> FieldResult<super::Project> {
-        super::service::update_project(&context.client, &project_id, updated_project)
+        super::service::update_project(&context.client, project_id, updated_project)
             .await
             .map_err(FieldError::from)
     }

@@ -1,6 +1,7 @@
 use crate::firestore::prelude::*;
+use juniper::ID;
 
-pub async fn get_project(client: &Client, id: &str) -> Response<super::Project> {
+pub async fn get_project(client: &Client, id: ID) -> Response<super::Project> {
     let doc = get_doc(client, format!("projects/{}", id)).await?;
     Ok(super::doc_to_project(&doc))
 }
@@ -28,7 +29,7 @@ pub async fn create_project(
 
 pub async fn update_project(
     client: &Client,
-    id: &str,
+    id: ID,
     upd_project: super::UpdateProjectInput,
 ) -> Response<super::Project> {
     let doc = update_doc(

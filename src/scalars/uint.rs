@@ -1,18 +1,19 @@
-use juniper::{ParseScalarResult, ParseScalarValue, Value};
+#[allow(unused_imports)]
+use juniper::{InputValue, ParseScalarResult, ParseScalarValue, ScalarValue, Value};
 
-pub struct UInt(u32);
-impl std::str::FromStr for UInt {
+pub struct PositiveNumber(u32);
+impl std::str::FromStr for PositiveNumber {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, String> {
         s.parse::<u32>()
-            .map(|v| UInt(v))
+            .map(|v| PositiveNumber(v))
             .map_err(|_| String::from("This is not UInt"))
     }
 }
 
 #[juniper::graphql_scalar(description = "Positive integer")]
-impl<S> GraphQLScalar for UInt
+impl<S> GraphQLScalar for PositiveNumber
 where
     S: ScalarValue,
 {
@@ -22,7 +23,7 @@ where
     }
 
     // Define how to parse a primitive type into your custom scalar.
-    fn from_input_value(v: &InputValue) -> Option<UInt> {
+    fn from_input_value(v: &InputValue) -> Option<PositiveNumber> {
         v.as_scalar_value()
             .and_then(|v| v.as_str())
             .and_then(|s| s.parse().ok())

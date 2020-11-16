@@ -1,6 +1,6 @@
 use super::Context;
-use crate::project::queries::QueryProjects;
-use crate::user::queries::QueryUsers;
+use crate::projects::queries::QueryProjects;
+use crate::users::queries::QueryUsers;
 
 pub struct QueryRoot;
 #[juniper::graphql_object(

@@ -1,5 +1,5 @@
 use crate::graphql::Context;
-use juniper::{FieldError, FieldResult};
+use juniper::{FieldError, FieldResult, ID};
 
 pub struct QueryUsers;
 #[juniper::graphql_object(
@@ -7,8 +7,8 @@ pub struct QueryUsers;
 )]
 impl QueryUsers {
     /// Get a HOOMAN
-    async fn getById(user_id: String, context: &Context) -> FieldResult<super::User> {
-        super::service::get_user(&context.client, &user_id)
+    async fn getById(user_id: ID, context: &Context) -> FieldResult<super::User> {
+        super::service::get_user(&context.client, user_id)
             .await
             .map_err(FieldError::from)
     }

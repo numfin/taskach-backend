@@ -4,12 +4,13 @@ pub mod service;
 
 use super::firestore::{prelude::*, Value};
 use chrono::prelude::*;
+use juniper::ID;
 use std::collections::HashMap;
 
 #[derive(juniper::GraphQLObject)]
 #[graphql(description = "Independent project")]
 pub struct Project {
-    id: String,
+    id: ID,
     name: String,
     description: String,
     created_at: DateTime<Utc>,
@@ -17,7 +18,7 @@ pub struct Project {
 }
 pub fn doc_to_project(doc: &Document) -> Project {
     Project {
-        id: get_id(doc).to_string(),
+        id: get_id(doc),
         name: get_field(doc, "name").into_string(),
         description: get_field(doc, "description").into_string(),
         created_at: get_datetime(&doc.create_time),
