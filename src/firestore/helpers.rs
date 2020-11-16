@@ -7,6 +7,7 @@ pub trait Helpers {
     fn into_string(self) -> String;
     fn into_date_time(self) -> DateTime<Utc>;
     fn into_bool(self) -> bool;
+    fn into_byte_string(self) -> String;
 }
 impl Helpers for Option<ValueType> {
     fn into_string(self) -> String {
@@ -28,6 +29,17 @@ impl Helpers for Option<ValueType> {
             b
         } else {
             false
+        }
+    }
+    fn into_byte_string(self) -> String {
+        if let Some(ValueType::BytesValue(value)) = self {
+            if let Ok(value) = std::str::from_utf8(&value) {
+                value.to_string()
+            } else {
+                "".to_string()
+            }
+        } else {
+            "".to_string()
         }
     }
 }

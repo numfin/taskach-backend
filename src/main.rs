@@ -1,3 +1,4 @@
+mod auth;
 mod config;
 mod firestore;
 mod graphql;
@@ -5,6 +6,7 @@ mod projects;
 mod scalars;
 mod users;
 // mod story;
+mod check_env;
 
 use actix_web::{middleware, web, App, HttpServer};
 use std::{env, io, sync::Mutex};
@@ -15,6 +17,7 @@ pub struct AppData {
 }
 #[actix_web::main]
 async fn main() -> io::Result<()> {
+    check_env::check_env();
     env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
 

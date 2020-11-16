@@ -2,25 +2,28 @@ pub mod mutations;
 pub mod queries;
 pub mod service;
 
+use crate::auth::pwd::create_pwd_hash;
 use crate::firestore::{prelude::*, Value};
 use chrono::prelude::*;
 use juniper::ID;
 use std::collections::HashMap;
 
-#[derive(juniper::GraphQLObject)]
+#[derive(juniper::GraphQLObject, Debug, Clone)]
 #[graphql(description = "A user in a taskach system")]
 pub struct User {
-    id: ID,
+    pub id: ID,
     /// имя
-    first_name: String,
+    pub first_name: String,
     /// фамилия
-    last_name: String,
+    pub last_name: String,
     /// email
-    email: String,
+    pub email: String,
     /// phone
-    phone: String,
+    pub phone: String,
     /// активность пользователя
-    active: bool,
+    pub active: bool,
+    #[graphql(skip)]
+    pub password_hash: String,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
@@ -32,6 +35,7 @@ pub fn doc_to_user(doc: &Document) -> User {
         email: get_field(doc, "email").into_string(),
         phone: get_field(doc, "phone").into_string(),
         active: get_field(doc, "active").into_bool(),
+        password_hash: get_field(doc, "password_hash").into_byte_string(),
         created_at: get_datetime(&doc.create_time),
         updated_at: get_datetime(&doc.update_time),
     }
@@ -43,19 +47,22 @@ pub struct NewUserInput {
     last_name: String,
     email: String,
     phone: String,
+    password: String,
 }
 
-pub fn new_user_to_fields(user: NewUserInput) -> HashMap<String, Value> {
-    [
+pub fn new_user_to_fields(user: NewUserInput) -> Result<HashMap<String, Value>, String> {
+    let password = create_pwd_hash(user.password)?;
+    Ok([
         ("first_name", into_firestore_string(user.first_name)),
         ("last_name", into_firestore_string(user.last_name)),
         ("email", into_firestore_string(user.email)),
         ("phone", into_firestore_string(user.phone)),
+        ("password_hash", into_firestore_bytes(password)),
         ("active", into_firestore_bool(false)),
     ]
     .iter()
     .map(|v| (v.0.into(), v.1.clone()))
-    .collect::<HashMap<String, Value>>()
+    .collect::<HashMap<String, Value>>())
 }
 
 #[derive(juniper::GraphQLInputObject)]

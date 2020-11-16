@@ -8,14 +8,18 @@ use tonic::{
     Request,
 };
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Clone)]
 pub enum ResponseError {
     #[error("Error happened while {0}")]
     UnexpectedError(String),
     #[error("Document {0} not found")]
     NotFound(String),
-    #[error("Document {0} with id: {1} already exists")]
+    #[error("Document {0} {1} already exists")]
     AlreadyExists(String, String),
+    #[error("{0}")]
+    CreationError(String),
+    #[error("{0}")]
+    AuthError(String),
 }
 pub type Response<T> = Result<T, ResponseError>;
 

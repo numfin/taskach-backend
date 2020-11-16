@@ -31,14 +31,14 @@ pub struct NewProjectInput {
     name: String,
     description: String,
 }
-pub fn new_project_to_fields(project: NewProjectInput) -> HashMap<String, Value> {
-    [
+pub fn new_project_to_fields(project: NewProjectInput) -> Result<HashMap<String, Value>, String> {
+    Ok([
         ("name", into_firestore_string(project.name)),
         ("description", into_firestore_string(project.description)),
     ]
     .iter()
     .map(|v| (v.0.into(), v.1.clone()))
-    .collect::<HashMap<String, Value>>()
+    .collect::<HashMap<String, Value>>())
 }
 
 #[derive(juniper::GraphQLInputObject)]

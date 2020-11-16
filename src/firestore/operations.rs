@@ -1,5 +1,10 @@
 use super::prelude::*;
 use super::Value;
+use super::{
+    run_query_request::QueryType,
+    structured_query::{CollectionSelector, Filter},
+    StructuredQuery,
+};
 use std::collections::HashMap;
 use tonic::Code;
 
@@ -46,10 +51,11 @@ fn split_parent_and_collection_id(path: &String) -> (String, String) {
 pub async fn create_doc(
     client: &Client,
     path: String,
-    fields: HashMap<String, Value>,
+    fields: Result<HashMap<String, Value>, String>,
 ) -> Response<Document> {
     let mut client = client.clone();
     let (parent, collection_id) = split_parent_and_collection_id(&path);
+    let fields = fields.map_err(|e| ResponseError::CreationError(e))?;
 
     Ok(client
         .create_document(CreateDocumentRequest {
@@ -90,6 +96,45 @@ pub async fn get_doc(client: &Client, path: String) -> Response<Document> {
         })?
         .get_ref()
         .clone())
+}
+
+pub async fn find_doc(client: &Client, path: String, filter: Filter) -> Response<Document> {
+    let mut client = client.clone();
+    let (parent, collection_id) = split_parent_and_collection_id(&path);
+    let not_found_err = ResponseError::NotFound(path.clone());
+
+    let result = client
+        .run_query(super::RunQueryRequest {
+            parent,
+            query_type: Some(QueryType::StructuredQuery(StructuredQuery {
+                limit: Some(1),
+                r#where: Some(filter),
+                from: vec![CollectionSelector {
+                    all_descendants: false,
+                    collection_id,
+                }],
+                ..Default::default()
+            })),
+            ..Default::default()
+        })
+        .await
+        .map_err(|err| match err.code() {
+            Code::NotFound => not_found_err.clone(),
+            _ => ResponseError::UnexpectedError("getting document".to_string()),
+        })?
+        .get_mut()
+        .message()
+        .await
+        .map_err(|_| not_found_err.clone())?;
+    if let Some(v) = result {
+        if let Some(doc) = v.document {
+            Ok(doc)
+        } else {
+            Err(not_found_err)
+        }
+    } else {
+        Err(not_found_err)
+    }
 }
 
 pub async fn get_doc_list(client: &Client, path: String) -> Response<Vec<Document>> {
