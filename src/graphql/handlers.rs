@@ -11,9 +11,11 @@ pub async fn graphql(
     payload: actix_web::web::Payload,
     app_data: web::Data<Mutex<crate::AppData>>,
 ) -> Result<HttpResponse, Error> {
-    let data = app_data.lock().map_err(|e| println!("{:#?}", e)).unwrap();
+    let jwt_claims = crate::auth::service::verify_session(&req);
+    let app_data = app_data.lock().map_err(|e| println!("{:#?}", e)).unwrap();
     let context = super::Context {
-        client: data.firestore_client.clone(),
+        client: app_data.firestore_client.clone(),
+        jwt_claims,
     };
-    graphql_handler(&data.graphql_schema, &context, req, payload).await
+    graphql_handler(&app_data.graphql_schema, &context, req, payload).await
 }

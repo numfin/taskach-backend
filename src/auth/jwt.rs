@@ -1,19 +1,33 @@
-use hmac::{Hmac, NewMac};
-use jwt::SignWithKey;
-use sha2::Sha256;
-use std::collections::BTreeMap;
+use super::Claims;
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
+use std::usize::MAX;
 
-pub fn token_from<'a>(fields: Vec<(&'a str, String)>) -> Result<String, String> {
-    let mut claims: BTreeMap<&str, &str> = BTreeMap::new();
-    fields.iter().for_each(|(key, value)| {
-        claims.insert(key, value);
-    });
-    let key = std::env::var("SESSION_KEY").unwrap();
-    let key = key.as_bytes();
-    let key = <Hmac<Sha256>>::new_varkey(key).map_err(|_| "Unable to create token".to_string())?;
+fn get_jwt_key() -> String {
+    std::env::var("SESSION_KEY").unwrap()
+}
 
-    claims
-        .clone()
-        .sign_with_key(&key)
-        .map_err(|_| "Unable to sign token".to_string())
+pub fn token_from<'a>(user: crate::users::User) -> Result<String, String> {
+    encode(
+        &Header::default(),
+        &Claims {
+            exp: MAX,
+            id: user.id.to_string(),
+            email: user.email,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            phone: user.phone,
+        },
+        &EncodingKey::from_secret(get_jwt_key().as_bytes()),
+    )
+    .map_err(|err| err.to_string())
+}
+
+pub fn verify_token<'a>(token_str: &'a str) -> Result<Claims, String> {
+    Ok(decode::<Claims>(
+        &token_str,
+        &DecodingKey::from_secret(get_jwt_key().as_bytes()),
+        &Validation::default(),
+    )
+    .map_err(|err| err.to_string())?
+    .claims)
 }

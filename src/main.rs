@@ -17,6 +17,8 @@ pub struct AppData {
 }
 #[actix_web::main]
 async fn main() -> io::Result<()> {
+    println!("Starting...");
+    let app_start_time = chrono::prelude::Utc::now().timestamp_millis();
     check_env::check_env();
     env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
@@ -25,15 +27,16 @@ async fn main() -> io::Result<()> {
         .await
         .map_err(|err| println!("{:?}", err))
         .unwrap();
-    let port = match env::var("PORT") {
-        Ok(p) => p,
-        Err(_) => "8081".to_string(),
-    };
+    let port = env::var("PORT").map_or("8081".to_string(), |v| v);
     let addr = format!("0.0.0.0:{}", port);
     let data = web::Data::new(Mutex::new(AppData {
         graphql_schema: graphql::create_schema(),
         firestore_client,
     }));
+    let app_connection_time = chrono::prelude::Utc::now().timestamp_millis();
+
+    println!("App is ready in {}ms", app_connection_time - app_start_time);
+
     HttpServer::new(move || {
         App::new()
             .app_data(data.clone())
