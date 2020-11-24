@@ -1,5 +1,5 @@
 mod jwt;
-pub mod mutations;
+use std::cmp::{Eq, PartialEq};
 pub mod pwd;
 pub mod service;
 
@@ -16,7 +16,7 @@ pub struct AuthenticationData {
     password: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub struct Claims {
     pub exp: usize,
     pub id: String,

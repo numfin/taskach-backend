@@ -31,3 +31,38 @@ pub fn verify_token<'a>(token_str: &'a str) -> Result<Claims, String> {
     .map_err(|err| err.to_string())?
     .claims)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::users::User;
+    use chrono::prelude::*;
+    #[test]
+    fn it_creates_valid_token() {
+        std::env::set_var("SESSION_KEY", "test");
+        let user = User {
+            id: juniper::ID::from("a".to_string()),
+            email: "b".to_string(),
+            first_name: "c".to_string(),
+            last_name: "d".to_string(),
+            phone: "e".to_string(),
+            password_hash: "".to_string(),
+            created_at: DateTime::<Utc>::from(chrono::Local::now()),
+            updated_at: DateTime::<Utc>::from(chrono::Local::now()),
+            active: true,
+        };
+        let token = token_from(user.clone()).unwrap();
+        let verified_token = verify_token(&token).unwrap();
+        assert_eq!(
+            verified_token,
+            Claims {
+                id: user.id.to_string(),
+                email: user.email,
+                first_name: user.first_name,
+                last_name: user.last_name,
+                exp: MAX,
+                phone: user.phone
+            }
+        )
+    }
+}

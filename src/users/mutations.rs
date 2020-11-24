@@ -1,9 +1,19 @@
+use crate::auth;
 use crate::graphql::Context;
 use juniper::{FieldError, FieldResult, ID};
 
 pub struct MutationUsers;
 #[juniper::graphql_object(Context = Context)]
 impl MutationUsers {
+    async fn login(
+        auth: auth::AuthenticationData,
+        context: &Context,
+    ) -> FieldResult<auth::Session> {
+        auth::service::authenticate(&context.client, auth)
+            .await
+            .map_err(FieldError::from)
+    }
+
     async fn register<'a>(
         new_user: super::NewUserInput,
         context: &Context,

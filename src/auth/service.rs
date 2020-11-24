@@ -25,6 +25,9 @@ pub async fn authenticate(
     .await?;
     // Converting user from dbref to struct
     let user = crate::users::doc_to_user(&doc);
+    if !user.active {
+        return Err(ResponseError::AuthError("User is not verified".to_string()));
+    }
     let password_hash = &user.password_hash;
     // If password and password_hash is valid - create jwt from user
     if super::pwd::verify_pwd_hash(password_hash.to_string(), auth_data.password) {

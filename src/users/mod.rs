@@ -24,8 +24,8 @@ pub struct User {
     pub active: bool,
     #[graphql(skip)]
     pub password_hash: String,
-    created_at: DateTime<Utc>,
-    updated_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 pub fn doc_to_user(doc: &Document) -> User {
     User {
