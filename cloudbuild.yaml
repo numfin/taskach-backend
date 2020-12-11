@@ -22,7 +22,7 @@ steps:
         "--image",
         "gcr.io/$PROJECT_ID/$REPO_NAME/$BRANCH_NAME/$SHORT_SHA",
         "--region",
-        "europe-west1",
+        "europe-west3",
         "--platform",
         "managed",
         "--quiet",
