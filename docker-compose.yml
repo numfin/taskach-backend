@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  taskach:
+    build: .
+    ports:
+      - "8081:8081"
+    volumes:
+      - .:/usr/app/
+      - cargo-git:/home/rust/.cargo/git
+      - cargo-registry:/home/rust/.cargo/registry
+      - target:/home/rust/src/target
+    env_file:
+      - .env
+volumes:
+  cargo-git:
+    external: true
+  cargo-registry:
+    external: true
+  target:
+    external: true
