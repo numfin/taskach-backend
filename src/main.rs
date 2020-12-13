@@ -8,6 +8,7 @@ mod users;
 // mod story;
 mod check_env;
 
+use actix_cors::Cors;
 use actix_web::{middleware, web, App, HttpServer};
 use std::{env, io, sync::Mutex};
 
@@ -40,6 +41,14 @@ async fn main() -> io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(data.clone())
+            .wrap(
+                Cors::default()
+                    .allow_any_header()
+                    .allow_any_method()
+                    .allowed_origin("https://app.taskach.ru")
+                    .allowed_origin("http://localhost:3000")
+                    .max_age(3600),
+            )
             .wrap(middleware::Logger::default())
             .configure(config::config)
     })
