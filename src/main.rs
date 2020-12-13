@@ -45,8 +45,7 @@ async fn main() -> io::Result<()> {
                 Cors::default()
                     .allow_any_header()
                     .allow_any_method()
-                    .allowed_origin("https://app.taskach.ru")
-                    .allowed_origin("http://localhost:3000")
+                    .allow_any_origin()
                     .max_age(3600),
             )
             .wrap(middleware::Logger::default())
