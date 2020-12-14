@@ -37,7 +37,6 @@ pub enum ClientError {
 pub type Client = FirestoreClient<Channel>;
 
 pub async fn create_service() -> Result<FirestoreClient<Channel>, ClientError> {
-    let token = Token::new().map_err(|err| ClientError::TokenError(err))?;
     let channel: tonic::transport::Endpoint;
 
     if let Ok(host) = std::env::var("FIRESTORE_EMULATOR_HOST") {
@@ -56,6 +55,8 @@ pub async fn create_service() -> Result<FirestoreClient<Channel>, ClientError> {
         .connect()
         .await
         .map_err(|err| ClientError::ConnectionError(err))?;
+
+    let token = Token::new().map_err(|err| ClientError::TokenError(err))?;
 
     let client = FirestoreClient::with_interceptor(channel, move |mut req: Request<()>| {
         let token = &*token.header_value().expect("No token header");
