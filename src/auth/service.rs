@@ -22,7 +22,8 @@ pub async fn authenticate(
             })),
         },
     )
-    .await?;
+    .await
+    .map_err(|_| ResponseError::NotFound("User".to_string()))?;
     // Converting user from dbref to struct
     let user = crate::users::doc_to_user(&doc);
     if !user.active {
@@ -34,9 +35,7 @@ pub async fn authenticate(
         let jwt = super::jwt::token_from(user).map_err(|err| ResponseError::AuthError(err))?;
         Ok(super::Session { jwt })
     } else {
-        Err(ResponseError::AuthError(
-            "E-mail or password is invalid".to_string(),
-        ))
+        Err(ResponseError::AuthError("Invalid password".to_string()))
     }
 }
 

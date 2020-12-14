@@ -12,7 +12,7 @@ use tonic::{
 pub enum ResponseError {
     #[error("Error happened while {0}")]
     UnexpectedError(String),
-    #[error("Document {0} not found")]
+    #[error("{0} not found")]
     NotFound(String),
     #[error("Document {0} {1} already exists")]
     AlreadyExists(String, String),
