@@ -14,8 +14,8 @@ pub enum ResponseError {
     UnexpectedError(String),
     #[error("{0} not found")]
     NotFound(String),
-    #[error("Document {0} {1} already exists")]
-    AlreadyExists(String, String),
+    #[error("{0}")]
+    AlreadyExists(String),
     #[error("{0}")]
     CreationError(String),
     #[error("{0}")]

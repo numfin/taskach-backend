@@ -74,8 +74,11 @@ pub async fn create_doc(
                 Some(Value {
                     value_type: Some(super::value::ValueType::StringValue(id)),
                 }),
-            ) => ResponseError::AlreadyExists(path, id.into()),
-            _ => ResponseError::UnexpectedError("creating document".to_string()),
+            ) => ResponseError::AlreadyExists(format!("Document {} already exists", id)),
+            err => {
+                println!("{:?}", err);
+                ResponseError::UnexpectedError("creating document".to_string())
+            }
         })?
         .get_ref()
         .clone())
