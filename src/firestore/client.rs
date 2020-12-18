@@ -39,7 +39,11 @@ pub type Client = FirestoreClient<Channel>;
 pub async fn create_service() -> Result<FirestoreClient<Channel>, ClientError> {
     let channel: tonic::transport::Endpoint;
 
-    if let Ok(host) = std::env::var("FIRESTORE_EMULATOR_HOST") {
+    let firebase_emulator_host = match std::env::var("FIRESTORE_EMULATOR_HOST") {
+        Ok(host) if host.len() > 0 => Some(host),
+        _ => None,
+    };
+    if let Some(host) = firebase_emulator_host {
         channel =
             Channel::from_shared(host).map_err(|err| ClientError::InvalidEmulatorHost(err))?;
     } else {
