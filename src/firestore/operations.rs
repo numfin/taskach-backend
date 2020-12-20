@@ -51,11 +51,10 @@ fn split_parent_and_collection_id(path: &String) -> (String, String) {
 pub async fn create_doc(
     client: &Client,
     path: String,
-    fields: Result<HashMap<String, Value>, String>,
+    fields: HashMap<String, Value>,
 ) -> Response<Document> {
     let mut client = client.clone();
     let (parent, collection_id) = split_parent_and_collection_id(&path);
-    let fields = fields.map_err(|e| ResponseError::CreationError(e))?;
 
     Ok(client
         .create_document(CreateDocumentRequest {

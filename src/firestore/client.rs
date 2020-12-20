@@ -36,7 +36,7 @@ pub enum ClientError {
 
 pub type Client = FirestoreClient<Channel>;
 
-pub async fn create_service() -> Result<FirestoreClient<Channel>, ClientError> {
+async fn get_channel() -> Result<tonic::transport::Endpoint, ClientError> {
     let channel: tonic::transport::Endpoint;
 
     let firebase_emulator_host = match std::env::var("FIRESTORE_EMULATOR_HOST") {
@@ -54,8 +54,12 @@ pub async fn create_service() -> Result<FirestoreClient<Channel>, ClientError> {
             .tls_config(tls_config)
             .map_err(|err| ClientError::TlsConfigError(err))?
     }
+    Ok(channel)
+}
 
-    let channel = channel
+pub async fn create_service() -> Result<FirestoreClient<Channel>, ClientError> {
+    let channel = get_channel()
+        .await?
         .connect()
         .await
         .map_err(|err| ClientError::ConnectionError(err))?;

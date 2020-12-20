@@ -1,12 +1,12 @@
 mod auth;
+mod check_env;
 mod config;
 mod firestore;
 mod graphql;
 mod projects;
 mod scalars;
+mod stories;
 mod users;
-// mod story;
-mod check_env;
 
 use actix_cors::Cors;
 use actix_web::{middleware, web, App, HttpServer};

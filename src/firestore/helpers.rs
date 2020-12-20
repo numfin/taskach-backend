@@ -4,12 +4,20 @@ use juniper::ID;
 use prost_types::Timestamp;
 
 pub trait Helpers {
+    fn into_id(self) -> juniper::ID;
     fn into_string(self) -> String;
     fn into_date_time(self) -> DateTime<Utc>;
     fn into_bool(self) -> bool;
     fn into_byte_string(self) -> String;
 }
 impl Helpers for Option<ValueType> {
+    fn into_id(self) -> juniper::ID {
+        if let Some(ValueType::ReferenceValue(value)) = self {
+            juniper::ID::from(value)
+        } else {
+            juniper::ID::new("")
+        }
+    }
     fn into_string(self) -> String {
         if let Some(ValueType::StringValue(value)) = self {
             value

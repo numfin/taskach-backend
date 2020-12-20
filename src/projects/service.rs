@@ -2,7 +2,12 @@ use crate::firestore::prelude::*;
 use juniper::ID;
 
 pub async fn get_project(client: &Client, id: ID) -> Response<super::Project> {
-    let doc = get_doc(client, format!("projects/{}", id)).await?;
+    let doc = get_doc(client, format!("projects/{}", id))
+        .await
+        .map_err(|err| match err {
+            ResponseError::NotFound(_) => ResponseError::NotFound(format!("Project {}", id)),
+            e => e,
+        })?;
     Ok(super::doc_to_project(&doc))
 }
 

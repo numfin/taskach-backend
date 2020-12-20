@@ -31,14 +31,11 @@ pub struct NewProjectInput {
     name: String,
     description: String,
 }
-pub fn new_project_to_fields(project: NewProjectInput) -> Result<HashMap<String, Value>, String> {
-    Ok([
-        ("name", into_firestore_string(project.name)),
-        ("description", into_firestore_string(project.description)),
-    ]
-    .iter()
-    .map(|v| (v.0.into(), v.1.clone()))
-    .collect::<HashMap<String, Value>>())
+pub fn new_project_to_fields(project: NewProjectInput) -> HashMap<String, Value> {
+    fields_to_firestore_value(&[
+        AppValue::Str("name", Some(project.name)),
+        AppValue::Str("description", Some(project.description)),
+    ])
 }
 
 #[derive(juniper::GraphQLInputObject)]
@@ -47,14 +44,8 @@ pub struct UpdateProjectInput {
     description: Option<String>,
 }
 pub fn update_user_to_fields(project: UpdateProjectInput) -> HashMap<String, Value> {
-    [
-        ("name", project.name, into_firestore_string),
-        ("description", project.description, into_firestore_string),
-    ]
-    .iter()
-    .filter_map(|(field, value, convert_fn)| match value {
-        Some(value) => Some((field.to_string(), convert_fn(value.to_string()))),
-        _ => None,
-    })
-    .collect::<HashMap<String, Value>>()
+    fields_to_firestore_value(&[
+        AppValue::Str("name", project.name),
+        AppValue::Str("description", project.description),
+    ])
 }

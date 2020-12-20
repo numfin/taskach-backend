@@ -40,7 +40,7 @@ pub async fn create_user(client: &Client, new_user: super::NewUserInput) -> Resp
     let doc = create_doc(
         client,
         "users".to_string(),
-        super::new_user_to_fields(new_user),
+        super::new_user_to_fields(new_user).map_err(ResponseError::CreationError)?,
     )
     .await?;
     Ok(super::doc_to_user(&doc))

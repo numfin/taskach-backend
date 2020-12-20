@@ -52,17 +52,14 @@ pub struct NewUserInput {
 
 pub fn new_user_to_fields(user: NewUserInput) -> Result<HashMap<String, Value>, String> {
     let password = create_pwd_hash(user.password)?;
-    Ok([
-        ("first_name", into_firestore_string(user.first_name)),
-        ("last_name", into_firestore_string(user.last_name)),
-        ("email", into_firestore_string(user.email)),
-        ("phone", into_firestore_string(user.phone)),
-        ("password_hash", into_firestore_bytes(password)),
-        ("active", into_firestore_bool(false)),
-    ]
-    .iter()
-    .map(|v| (v.0.into(), v.1.clone()))
-    .collect::<HashMap<String, Value>>())
+    Ok(fields_to_firestore_value(&[
+        AppValue::Str("first_name", Some(user.first_name)),
+        AppValue::Str("last_name", Some(user.last_name)),
+        AppValue::Str("email", Some(user.email)),
+        AppValue::Str("phone", Some(user.phone)),
+        AppValue::Byte("password_hash", Some(password)),
+        AppValue::Bool("active", Some(true)),
+    ]))
 }
 
 #[derive(juniper::GraphQLInputObject)]
@@ -72,15 +69,9 @@ pub struct UpdateUserInput {
     phone: Option<String>,
 }
 pub fn update_user_to_fields(user: UpdateUserInput) -> HashMap<String, Value> {
-    [
-        ("first_name", user.first_name, into_firestore_string),
-        ("last_name", user.last_name, into_firestore_string),
-        ("phone", user.phone, into_firestore_string),
-    ]
-    .iter()
-    .filter_map(|(field, value, convert_fn)| match value {
-        Some(value) => Some((field.to_string(), convert_fn(value.to_string()))),
-        _ => None,
-    })
-    .collect::<HashMap<String, Value>>()
+    fields_to_firestore_value(&[
+        AppValue::Str("first_name", user.first_name),
+        AppValue::Str("last_name", user.last_name),
+        AppValue::Str("phone", user.phone),
+    ])
 }

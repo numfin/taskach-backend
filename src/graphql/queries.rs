@@ -1,5 +1,6 @@
 use super::Context;
 use crate::projects::queries::QueryProjects;
+use crate::stories::queries::QueryStories;
 use crate::users::queries::QueryUsers;
 
 pub struct QueryRoot;
@@ -12,5 +13,8 @@ impl QueryRoot {
     }
     fn projects(&self) -> QueryProjects {
         QueryProjects
+    }
+    fn stories(&self) -> QueryStories {
+        QueryStories
     }
 }
