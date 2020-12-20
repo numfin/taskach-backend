@@ -5,12 +5,12 @@ use googapis::google::firestore::v1::structured_query::{
 use juniper::ID;
 
 pub async fn get_user(client: &Client, id: ID) -> Response<super::User> {
-    let doc = get_doc(client, format!("users/{}", id)).await?;
+    let doc = operations::get_doc(client, format!("users/{}", id)).await?;
     Ok(super::doc_to_user(&doc))
 }
 
 pub async fn get_all_users(client: &Client) -> Response<Vec<super::User>> {
-    let docs = get_doc_list(client, "users".to_string()).await?;
+    let docs = operations::get_doc_list(client, "users".to_string()).await?;
     Ok(docs
         .iter()
         .map(super::doc_to_user)
@@ -18,7 +18,7 @@ pub async fn get_all_users(client: &Client) -> Response<Vec<super::User>> {
 }
 
 pub async fn create_user(client: &Client, new_user: super::NewUserInput) -> Response<super::User> {
-    let existing_doc = find_doc(
+    let existing_doc = operations::find_doc(
         client,
         "users".to_string(),
         Filter {
@@ -37,7 +37,7 @@ pub async fn create_user(client: &Client, new_user: super::NewUserInput) -> Resp
             "User with this e-mail already exists".to_string(),
         ));
     }
-    let doc = create_doc(
+    let doc = operations::create_doc(
         client,
         "users".to_string(),
         super::new_user_to_fields(new_user).map_err(ResponseError::CreationError)?,
@@ -51,7 +51,7 @@ pub async fn update_user(
     id: ID,
     upd_user: super::UpdateUserInput,
 ) -> Response<super::User> {
-    let doc = update_doc(
+    let doc = operations::update_doc(
         client,
         format!("users/{}", id),
         super::update_user_to_fields(upd_user),

@@ -9,7 +9,7 @@ pub async fn authenticate(
     auth_data: super::AuthenticationData,
 ) -> Response<super::Session> {
     // Getting user from db
-    let doc = find_doc(
+    let doc = operations::find_doc(
         client,
         "users".to_string(),
         Filter {

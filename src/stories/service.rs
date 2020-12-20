@@ -7,7 +7,7 @@ use juniper::ID;
 use crate::firestore;
 
 pub async fn get_story(client: &Client, project_id: &ID, story_id: &ID) -> Response<super::Story> {
-    let doc = get_doc(
+    let doc = operations::get_doc(
         client,
         format!("projects/{}/stories/{}", project_id, story_id),
     )
@@ -16,7 +16,7 @@ pub async fn get_story(client: &Client, project_id: &ID, story_id: &ID) -> Respo
 }
 
 pub async fn get_all_stories(client: &Client, project_id: &ID) -> Response<Vec<super::Story>> {
-    let docs = get_doc_list(client, format!("projects/{}/stories", project_id)).await?;
+    let docs = operations::get_doc_list(client, format!("projects/{}/stories", project_id)).await?;
     Ok(docs
         .iter()
         .map(super::doc_to_story)
@@ -28,13 +28,13 @@ pub async fn create_story(
     project_id: &ID,
     new_story: super::NewStoryInput,
 ) -> Response<super::Story> {
-    let existing_doc = find_doc(
+    let existing_doc = operations::find_doc(
         client,
-        "users".to_string(),
+        format!("projects/{}/stories", project_id),
         Filter {
             filter_type: Some(FilterType::FieldFilter(FieldFilter {
                 field: Some(FieldReference {
-                    field_path: "email".to_string(),
+                    field_path: "name".to_string(),
                 }),
                 op: field_filter::Operator::Equal.into(),
                 value: Some(into_firestore_string(new_story.name.clone())),
@@ -47,7 +47,7 @@ pub async fn create_story(
             "Story with this name already exists".to_string(),
         ));
     }
-    let doc = create_doc(
+    let doc = operations::create_doc(
         client,
         format!("projects/{}/stories", project_id),
         super::new_story_to_fields(new_story),
@@ -62,7 +62,7 @@ pub async fn update_story(
     story_id: &ID,
     upd_story: super::UpdateStoryInput,
 ) -> Response<super::Story> {
-    let doc = update_doc(
+    let doc = operations::update_doc(
         client,
         format!("projects/{}/stories/{}", project_id, story_id),
         super::update_story_to_fields(upd_story),

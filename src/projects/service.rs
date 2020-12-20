@@ -2,7 +2,7 @@ use crate::firestore::prelude::*;
 use juniper::ID;
 
 pub async fn get_project(client: &Client, id: ID) -> Response<super::Project> {
-    let doc = get_doc(client, format!("projects/{}", id))
+    let doc = operations::get_doc(client, format!("projects/{}", id))
         .await
         .map_err(|err| match err {
             ResponseError::NotFound(_) => ResponseError::NotFound(format!("Project {}", id)),
@@ -12,7 +12,7 @@ pub async fn get_project(client: &Client, id: ID) -> Response<super::Project> {
 }
 
 pub async fn get_all_projects(client: &Client) -> Response<Vec<super::Project>> {
-    let docs = get_doc_list(client, "projects".to_string()).await?;
+    let docs = operations::get_doc_list(client, "projects".to_string()).await?;
     Ok(docs
         .iter()
         .map(super::doc_to_project)
@@ -23,7 +23,7 @@ pub async fn create_project(
     client: &Client,
     new_project: super::NewProjectInput,
 ) -> Response<super::Project> {
-    let doc = create_doc(
+    let doc = operations::create_doc(
         client,
         "projects".to_string(),
         super::new_project_to_fields(new_project),
@@ -37,7 +37,7 @@ pub async fn update_project(
     id: ID,
     upd_project: super::UpdateProjectInput,
 ) -> Response<super::Project> {
-    let doc = update_doc(
+    let doc = operations::update_doc(
         client,
         format!("projects/{}", id),
         super::update_user_to_fields(upd_project),
