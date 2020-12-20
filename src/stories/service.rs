@@ -1,8 +1,6 @@
 use firestore::prelude::*;
-use googapis::google::firestore::v1::structured_query::{
-    field_filter, filter::FilterType, FieldFilter, FieldReference, Filter,
-};
 use juniper::ID;
+use operations::FindFilter;
 
 use crate::firestore;
 
@@ -30,16 +28,13 @@ pub async fn create_story(
 ) -> Response<super::Story> {
     let existing_doc = operations::find_doc(
         client,
-        format!("projects/{}/stories", project_id),
-        Filter {
-            filter_type: Some(FilterType::FieldFilter(FieldFilter {
-                field: Some(FieldReference {
-                    field_path: "name".to_string(),
-                }),
-                op: field_filter::Operator::Equal.into(),
-                value: Some(into_firestore_string(new_story.name.clone())),
-            })),
-        },
+        format!("projects/{}/stories", project_id).as_str(),
+        vec![FindFilter::Equal(
+            "name",
+            into_firestore_string(new_story.name.to_string()),
+        )],
+        Some(1),
+        None,
     )
     .await;
     if existing_doc.is_ok() {

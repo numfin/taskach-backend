@@ -1,8 +1,6 @@
 use crate::firestore::prelude::*;
-use crate::firestore::structured_query::{
-    field_filter, filter::FilterType, FieldFilter, FieldReference, Filter,
-};
 use actix_web::HttpRequest;
+use operations::FindFilter;
 
 pub async fn authenticate(
     client: &Client,
@@ -11,16 +9,13 @@ pub async fn authenticate(
     // Getting user from db
     let doc = operations::find_doc(
         client,
-        "users".to_string(),
-        Filter {
-            filter_type: Some(FilterType::FieldFilter(FieldFilter {
-                field: Some(FieldReference {
-                    field_path: "email".to_string(),
-                }),
-                op: field_filter::Operator::Equal.into(),
-                value: Some(into_firestore_string(auth_data.email)),
-            })),
-        },
+        "users",
+        vec![FindFilter::Equal(
+            "email",
+            into_firestore_string(auth_data.email),
+        )],
+        Some(10),
+        None,
     )
     .await
     .map_err(|_| ResponseError::NotFound("User".to_string()))?;
