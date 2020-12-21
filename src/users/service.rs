@@ -19,7 +19,7 @@ pub async fn create_user(client: &Client, new_user: super::NewUserInput) -> Resp
     let existing_doc = operations::find_doc(
         client,
         "users",
-        vec![FindFilter::Equal(
+        &[FindFilter::Equal(
             "email",
             into_firestore_string(new_user.email.to_string()),
         )],

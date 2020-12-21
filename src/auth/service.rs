@@ -10,7 +10,7 @@ pub async fn authenticate(
     let doc = operations::find_doc(
         client,
         "users",
-        vec![FindFilter::Equal(
+        &[FindFilter::Equal(
             "email",
             into_firestore_string(auth_data.email),
         )],

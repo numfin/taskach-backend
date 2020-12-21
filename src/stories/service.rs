@@ -29,7 +29,7 @@ pub async fn create_story(
     let existing_doc = operations::find_doc(
         client,
         format!("projects/{}/stories", project_id).as_str(),
-        vec![FindFilter::Equal(
+        &[FindFilter::Equal(
             "name",
             into_firestore_string(new_story.name.to_string()),
         )],

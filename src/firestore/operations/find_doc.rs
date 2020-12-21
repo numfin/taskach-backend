@@ -1,5 +1,4 @@
 use googapis::google::firestore::v1::structured_query::FieldReference;
-use tonic::Code;
 
 use super::operations;
 use crate::firestore::prelude::*;
@@ -16,7 +15,7 @@ pub enum FindFilter<'a> {
     Equal(&'a str, Value),
 }
 
-fn prepare_filters(filters: Vec<FindFilter<'_>>) -> Vec<Filter> {
+fn prepare_filters(filters: &[FindFilter<'_>]) -> Vec<Filter> {
     filters
         .iter()
         .filter_map(|f| match f {
@@ -36,7 +35,7 @@ fn prepare_filters(filters: Vec<FindFilter<'_>>) -> Vec<Filter> {
 pub async fn find_doc<'a>(
     client: &Client,
     collection: &'a str,
-    filters: Vec<FindFilter<'_>>,
+    filters: &[FindFilter<'_>],
     limit: Option<i32>,
     skip: Option<i32>,
 ) -> Response<Document> {
@@ -61,7 +60,7 @@ pub async fn find_doc<'a>(
                     Some(Filter {
                         filter_type: Some(FilterType::CompositeFilter(CompositeFilter {
                             op: composite_filter::Operator::And.into(),
-                            filters: prepare_filters(filters),
+                            filters: prepare_filters(&filters),
                         })),
                     })
                 } else {
@@ -72,17 +71,15 @@ pub async fn find_doc<'a>(
             ..Default::default()
         })
         .await
-        .map_err(|err| match err.code() {
-            Code::NotFound => ResponseError::NotFound("Document not found".to_string()),
-            e => ResponseError::UnexpectedError(e.to_string()),
-        })?
+        .map_err(|e| ResponseError::NotFound(e.to_string()))?
         .get_mut()
         .message()
         .await
         .map_err(|e| ResponseError::NotFound(e.to_string()))?;
-    if let Some(v) = query {
-        if let Some(doc) = v.document {
-            Ok(doc)
+
+    if let Some(q) = query {
+        if let Some(d) = q.document {
+            Ok(d)
         } else {
             Err(ResponseError::NotFound("Document not found".to_string()))
         }
