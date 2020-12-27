@@ -30,7 +30,7 @@ pub mod get_env {
 
     pub fn datastore_emulator_host() -> Option<String> {
         match var("DATASTORE_EMULATOR_HOST") {
-            Ok(host) if host.len() > 2 => Some(host),
+            Ok(host) if host.len() > 0 => Some(host),
             _ => None,
         }
     }

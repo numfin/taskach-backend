@@ -75,9 +75,11 @@ pub fn get_id(doc: &Entity) -> ID {
 }
 pub fn get_id_from_key(key: &Key) -> ID {
     if let Some(path) = key.path.last() {
-        if let Some(IdType::Id(id)) = path.id_type {
-            return ID::new(id.to_string());
-        }
+        return match &path.id_type {
+            Some(IdType::Id(id)) => ID::new(id.to_string()),
+            Some(IdType::Name(name)) => ID::new(name),
+            _ => ID::new(""),
+        };
     }
     ID::new("")
 }

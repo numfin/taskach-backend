@@ -771,6 +771,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "cuid"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dcbef25a72cae9d2177cf917b98e598d6302daee9cce90dfac181219d3a291b0"
+dependencies = [
+ "hostname",
+ "lazy_static",
+ "rand",
+]
+
+[[package]]
 name = "derive_more"
 version = "0.99.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2129,6 +2140,7 @@ dependencies = [
  "actix-web",
  "async-trait",
  "chrono",
+ "cuid",
  "env_logger",
  "futures",
  "googapis",

@@ -12,7 +12,10 @@ pub async fn graphql(
     app_data: web::Data<Mutex<crate::AppData>>,
 ) -> Result<HttpResponse, Error> {
     let jwt_claims = crate::auth::service::verify_session(&req);
-    let app_data = app_data.lock().map_err(|e| println!("{:#?}", e)).unwrap();
+    let app_data = app_data
+        .lock()
+        .map_err(|err| println!("{:#?}", err))
+        .unwrap();
     let context = super::Context {
         client: app_data.datastore_client.clone(),
         jwt_claims,

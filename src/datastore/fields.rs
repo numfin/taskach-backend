@@ -7,7 +7,7 @@ use v1::Key;
 
 use crate::datastore::{value::ValueType, Value};
 
-use super::prelude::utils::{normalize_path, PathToRef};
+use super::operations::utils::{normalize_path, PathToRef};
 
 pub fn to_db_string(value: &String) -> Value {
     Value {
@@ -46,8 +46,8 @@ pub fn to_db_key<'a>(entity_path: &PathToRef<'a>) -> Value {
 pub fn to_db_timestamp(datetime: &DateTime<Utc>) -> Value {
     Value {
         value_type: Some(ValueType::TimestampValue(Timestamp {
-            nanos: datetime.timestamp_nanos() as i32,
-            seconds: datetime.timestamp_subsec_nanos() as i64,
+            nanos: datetime.timestamp_subsec_nanos() as i32,
+            seconds: datetime.timestamp() as i64,
         })),
         ..Default::default()
     }

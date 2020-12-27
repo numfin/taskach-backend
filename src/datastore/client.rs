@@ -2,7 +2,7 @@ use crate::app_env::get_env;
 
 use super::datastore_client::DatastoreClient;
 use googapis::CERTIFICATES;
-use gouth::Token;
+use gouth::{self, Builder, Token};
 use thiserror::Error;
 use tonic::{
     metadata::MetadataValue,
@@ -39,11 +39,12 @@ pub enum ClientError {
 
 pub type Client = DatastoreClient<Channel>;
 
-async fn get_channel() -> Result<tonic::transport::Endpoint, ClientError> {
+async fn get_channel(
+    datastore_host: &Option<String>,
+) -> Result<tonic::transport::Endpoint, ClientError> {
     let channel: tonic::transport::Endpoint;
 
-    let firebase_emulator_host = get_env::datastore_emulator_host();
-    if let Some(host) = firebase_emulator_host {
+    if let Some(host) = datastore_host.clone() {
         channel = Channel::from_shared(host).map_err(ClientError::InvalidEmulatorHost)?;
     } else {
         let tls_config = ClientTlsConfig::new()
@@ -56,14 +57,27 @@ async fn get_channel() -> Result<tonic::transport::Endpoint, ClientError> {
     Ok(channel)
 }
 
+fn get_token(use_env: bool) -> gouth::Result<Token> {
+    if !use_env {
+        if let Ok(token) = Builder::new()
+            .file("~/.config/gcloud/application_default_credentials.json")
+            .build()
+        {
+            return Ok(token);
+        }
+    }
+    Token::new()
+}
+
 pub async fn create_service() -> Result<DatastoreClient<Channel>, ClientError> {
-    let channel = get_channel()
+    let datastore_host = &get_env::datastore_emulator_host();
+    let channel = get_channel(datastore_host)
         .await?
         .connect()
         .await
-        .map_err(|err| ClientError::ConnectionError(err))?;
+        .map_err(ClientError::ConnectionError)?;
 
-    let token = Token::new().map_err(|err| ClientError::TokenError(err))?;
+    let token = get_token(datastore_host.is_some()).map_err(ClientError::TokenError)?;
 
     let client = DatastoreClient::with_interceptor(channel, move |mut req: Request<()>| {
         let token = &*token.header_value().expect("No token header");

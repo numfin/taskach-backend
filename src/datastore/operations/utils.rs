@@ -1,3 +1,4 @@
+use cuid::cuid;
 use googapis::google::datastore::v1::{
     gql_query_parameter::ParameterType,
     key::{path_element::IdType, PathElement},
@@ -24,8 +25,7 @@ pub fn normalize_path(path: &PathToRef) -> Vec<PathElement> {
                         None
                     }
                 }
-                KeyId::Str(name) => Some(IdType::Name(name.to_string())),
-                _ => None,
+                KeyId::Cuid(id) => Some(IdType::Name(id.to_string())),
             },
             kind: kind.0.to_string(),
         })
@@ -36,7 +36,13 @@ pub type PathToRef<'a> = [(KeyKind<'a>, KeyId<'a>)];
 
 pub struct KeyKind<'a>(pub &'a str);
 pub enum KeyId<'a> {
-    Str(&'a str),
     Id(&'a ID),
-    None,
+    Cuid(&'a String),
+}
+
+pub fn gen_cuid() -> Result<String, String> {
+    cuid().map_err(|err| {
+        println!("{:?}", err.to_string());
+        format!("Cannot create cuid")
+    })
 }
