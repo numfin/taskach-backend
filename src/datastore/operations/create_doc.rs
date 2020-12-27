@@ -10,7 +10,7 @@ pub async fn create_doc<'a>(
     client: &Client,
     path: &PathToRef<'a>,
     properties: HashMap<String, Value>,
-) -> Response<Option<Key>> {
+) -> Response<Entity> {
     let mut client = client.clone();
     let created_at = to_db_timestamp(&Utc::now());
 
@@ -18,16 +18,18 @@ pub async fn create_doc<'a>(
     properties.insert("created_at".into(), created_at.clone());
     properties.insert("updated_at".into(), created_at);
 
+    let mut key = Some(Key {
+        path: normalize_path(path),
+        ..Default::default()
+    });
+
     let request = CommitRequest {
         project_id: get_env::project_id(),
         mode: Mode::NonTransactional.into(),
         mutations: vec![Mutation {
             operation: Some(Operation::Insert(Entity {
-                key: Some(Key {
-                    path: normalize_path(path),
-                    ..Default::default()
-                }),
-                properties,
+                key: key.clone(),
+                properties: properties.clone(),
             })),
             ..Default::default()
         }],
@@ -45,8 +47,8 @@ pub async fn create_doc<'a>(
         .pop();
 
     if let Some(result) = mutation_result {
-        Ok(result.key)
-    } else {
-        Ok(None)
+        key = result.key;
     }
+
+    Ok(Entity { key, properties })
 }

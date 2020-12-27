@@ -3,7 +3,27 @@ use crate::{app_env::get_env, datastore::prelude::*};
 use googapis::google::datastore::v1;
 use v1::{run_query_request::QueryType, Entity, EntityResult, GqlQuery, QueryResultBatch, Value};
 
-use super::utils::value_to_gql_param;
+use super::utils::{value_to_gql_param, PathToRef};
+
+pub async fn run_query_id<'a>(
+    client: &Client,
+    kind: &'a str,
+    entity_path: &PathToRef<'a>,
+) -> Response<Entity> {
+    let query_batch = run_query(
+        client,
+        format!("SELECT * FROM {} WHERE __key__ = @1", kind),
+        Default::default(),
+        &[to_db_key(entity_path)],
+    )
+    .await
+    .or(Err(ResponseError::NotFound(kind.into())))?;
+    let first_entity = extract_first_entity(&query_batch.entity_results);
+    match first_entity {
+        Some(v) => Ok(v),
+        None => Err(ResponseError::NotFound(format!("{}", kind))),
+    }
+}
 
 pub async fn run_query<'a>(
     client: &Client,
@@ -45,7 +65,7 @@ pub async fn run_query<'a>(
     }
 }
 
-pub fn extract_first_entity(entities: Vec<EntityResult>) -> Option<Entity> {
+pub fn extract_first_entity(entities: &Vec<EntityResult>) -> Option<Entity> {
     match entities.last() {
         Some(entity) if entity.entity.is_some() => entity.entity.to_owned(),
         _ => None,

@@ -53,11 +53,16 @@ pub fn to_db_timestamp(datetime: &DateTime<Utc>) -> Value {
     }
 }
 
-pub fn fields_to_db_values(fields: &[AppValue]) -> HashMap<String, Value> {
-    fields
-        .iter()
-        .filter_map(|app_value| app_value.to_db_value())
-        .collect::<HashMap<String, Value>>()
+pub fn fields_to_db_values<'a>(
+    original: &mut HashMap<String, Value>,
+    fields: &[AppValue<'a>],
+) -> HashMap<String, Value> {
+    fields.iter().for_each(|app_value| {
+        if let Some((k, v)) = app_value.to_db_value() {
+            original.insert(k, v);
+        }
+    });
+    original.to_owned()
 }
 
 pub enum AppValue<'a> {

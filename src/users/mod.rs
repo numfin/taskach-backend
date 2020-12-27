@@ -52,14 +52,18 @@ pub struct NewUserInput {
 
 pub fn new_user_to_fields(user: NewUserInput) -> Result<HashMap<String, Value>, String> {
     let password = create_pwd_hash(user.password)?;
-    Ok(fields_to_db_values(&[
-        AppValue::Str("first_name", Some(user.first_name)),
-        AppValue::Str("last_name", Some(user.last_name)),
-        AppValue::Str("email", Some(user.email)),
-        AppValue::Str("phone", Some(user.phone)),
-        AppValue::Byte("password_hash", Some(password)),
-        AppValue::Bool("active", Some(true)),
-    ]))
+    let mut model: HashMap<String, Value> = Default::default();
+    Ok(fields_to_db_values(
+        &mut model,
+        &[
+            AppValue::Str("first_name", Some(user.first_name)),
+            AppValue::Str("last_name", Some(user.last_name)),
+            AppValue::Str("email", Some(user.email)),
+            AppValue::Str("phone", Some(user.phone)),
+            AppValue::Byte("password_hash", Some(password)),
+            AppValue::Bool("active", Some(true)),
+        ],
+    ))
 }
 
 #[derive(juniper::GraphQLInputObject)]
@@ -68,10 +72,16 @@ pub struct UpdateUserInput {
     last_name: Option<String>,
     phone: Option<String>,
 }
-pub fn update_user_to_fields(user: UpdateUserInput) -> HashMap<String, Value> {
-    fields_to_db_values(&[
-        AppValue::Str("first_name", user.first_name),
-        AppValue::Str("last_name", user.last_name),
-        AppValue::Str("phone", user.phone),
-    ])
+pub fn update_user_to_fields(
+    mut original: HashMap<String, Value>,
+    user: UpdateUserInput,
+) -> HashMap<String, Value> {
+    fields_to_db_values(
+        &mut original,
+        &[
+            AppValue::Str("first_name", user.first_name),
+            AppValue::Str("last_name", user.last_name),
+            AppValue::Str("phone", user.phone),
+        ],
+    )
 }

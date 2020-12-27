@@ -34,7 +34,10 @@ pub fn normalize_path(path: &PathToRef) -> Vec<PathElement> {
 
 pub type PathToRef<'a> = [(KeyKind<'a>, KeyId<'a>)];
 
+#[derive(Debug)]
 pub struct KeyKind<'a>(pub &'a str);
+
+#[derive(Debug)]
 pub enum KeyId<'a> {
     Id(&'a ID),
     Cuid(&'a String),

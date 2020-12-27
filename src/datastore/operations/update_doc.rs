@@ -10,30 +10,31 @@ pub async fn update_doc<'a>(
     client: &Client,
     path: &PathToRef<'a>,
     properties: HashMap<String, Value>,
-) -> Response<()> {
+) -> Response<Entity> {
     let mut client = client.clone();
     let updated_at = to_db_timestamp(&Utc::now());
 
     let mut properties = HashMap::from(properties);
     properties.insert("updated_at".into(), updated_at);
+    let key = Some(Key {
+        path: normalize_path(path),
+        ..Default::default()
+    });
 
     let request = CommitRequest {
         project_id: get_env::project_id(),
         mode: Mode::NonTransactional.into(),
         mutations: vec![Mutation {
             operation: Some(Operation::Upsert(Entity {
-                key: Some(Key {
-                    path: normalize_path(path),
-                    ..Default::default()
-                }),
-                properties,
+                key: key.clone(),
+                properties: properties.clone(),
             })),
             ..Default::default()
         }],
         ..Default::default()
     };
 
-    let mutation_result = client
+    client
         .commit(request)
         .await
         .map_err(|err| {
@@ -43,5 +44,5 @@ pub async fn update_doc<'a>(
         .get_mut()
         .mutation_results
         .pop();
-    Ok(())
+    Ok(Entity { key, properties })
 }
