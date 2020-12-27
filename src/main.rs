@@ -1,38 +1,39 @@
+mod app_env;
 mod auth;
-mod check_env;
 mod config;
-mod firestore;
+mod datastore;
 mod graphql;
-mod projects;
+// mod projects;
 mod scalars;
-mod stories;
+// mod stories;
 mod users;
 
 use actix_cors::Cors;
 use actix_web::{middleware, web, App, HttpServer};
+use app_env::get_env;
 use std::{env, io, sync::Mutex};
 
 pub struct AppData {
     graphql_schema: graphql::Schema,
-    firestore_client: firestore::client::Client,
+    datastore_client: datastore::client::Client,
 }
 #[actix_web::main]
 async fn main() -> io::Result<()> {
     println!("Starting...");
     let app_start_time = chrono::prelude::Utc::now().timestamp_millis();
-    check_env::check_env();
+    app_env::check_env();
     env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
 
-    let firestore_client = crate::firestore::client::create_service()
+    let datastore_client = crate::datastore::client::create_service()
         .await
         .map_err(|err| println!("{:?}", err))
         .unwrap();
-    let port = env::var("PORT").map_or("8081".to_string(), |v| v);
+    let port = get_env::port();
     let addr = format!("0.0.0.0:{}", port);
     let data = web::Data::new(Mutex::new(AppData {
         graphql_schema: graphql::create_schema(),
-        firestore_client,
+        datastore_client,
     }));
     let app_connection_time = chrono::prelude::Utc::now().timestamp_millis();
 

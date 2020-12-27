@@ -1,57 +1,94 @@
-use crate::firestore::prelude::*;
-use juniper::ID;
-use operations::FindFilter;
+use crate::datastore::prelude::*;
+use operations::extract_first_entity;
 
-pub async fn get_user(client: &Client, id: ID) -> Response<super::User> {
-    let doc = operations::get_doc(client, format!("users/{}", id)).await?;
-    Ok(super::doc_to_user(&doc))
+use juniper::ID;
+use utils::{KeyId, KeyKind};
+
+pub async fn get_user(client: &Client, id: &ID) -> Response<super::User> {
+    let query_batch = operations::run_query(
+        client,
+        format!("SELECT * FROM Users WHERE __key__ = @1"),
+        Default::default(),
+        &[to_db_key(&[(KeyKind("Users"), KeyId::Id(id))])],
+    )
+    .await
+    .or(Err(ResponseError::NotFound("User".into())))?;
+
+    let first_entity = extract_first_entity(query_batch.entity_results);
+
+    match first_entity {
+        Some(v) => Ok(super::doc_to_user(&v)),
+        None => Err(ResponseError::NotFound(format!("User {}", id))),
+    }
 }
 
 pub async fn get_all_users(client: &Client) -> Response<Vec<super::User>> {
-    let docs = operations::get_doc_list(client, "users".to_string()).await?;
-    Ok(docs
+    let query_batch = operations::run_query(
+        client,
+        format!("SELECT * FROM Users"),
+        Default::default(),
+        Default::default(),
+    )
+    .await
+    .or(Err(ResponseError::NotFound("User".into())))?;
+
+    Ok(query_batch
+        .entity_results
         .iter()
-        .map(super::doc_to_user)
-        .collect::<Vec<super::User>>())
+        .filter_map(|entity_result| match &entity_result.entity {
+            Some(entity) => Some(super::doc_to_user(entity)),
+            None => None,
+        })
+        .collect())
 }
 
-pub async fn create_user(client: &Client, new_user: super::NewUserInput) -> Response<super::User> {
-    let existing_doc = operations::find_doc(
-        client,
-        "users",
-        &[FindFilter::Equal(
-            "email",
-            into_firestore_string(new_user.email.to_string()),
-        )],
-        Some(1),
-        None,
-    )
-    .await;
-    if existing_doc.is_ok() {
+pub async fn create_user(client: &Client, new_user: super::NewUserInput) -> Response<ID> {
+    let existing_user = get_user_by_email(client, &new_user.email).await;
+    if existing_user.is_ok() {
         return Err(ResponseError::AlreadyExists(
             "User with this e-mail already exists".to_string(),
         ));
     }
-    let doc = operations::create_doc(
+    let key = operations::create_doc(
         client,
-        "users".to_string(),
+        &[(KeyKind("Users"), KeyId::None)],
         super::new_user_to_fields(new_user).map_err(ResponseError::CreationError)?,
     )
     .await?;
-    Ok(super::doc_to_user(&doc))
+
+    Ok(get_id_from_key(&key))
 }
 
 pub async fn update_user(
     client: &Client,
-    id: ID,
+    id: &ID,
     upd_user: super::UpdateUserInput,
-) -> Response<super::User> {
-    let doc = operations::update_doc(
+) -> Response<ID> {
+    let key = operations::update_doc(
         client,
-        format!("users/{}", id),
+        &[(KeyKind("Users"), KeyId::Id(id))],
         super::update_user_to_fields(upd_user),
     )
     .await?;
 
-    Ok(super::doc_to_user(&doc))
+    Ok(get_id_from_key(&key))
+}
+
+pub async fn get_user_by_email(client: &Client, email: &String) -> Response<super::User> {
+    let query_batch = operations::run_query(
+        client,
+        format!("SELECT * FROM Users WHERE email = @1 LIMIT 1"),
+        Default::default(),
+        &[to_db_string(email)],
+    )
+    .await
+    .or(Err(ResponseError::NotFound("User".into())))?;
+    println!("{:#?}", query_batch);
+
+    let first_entity = extract_first_entity(query_batch.entity_results);
+
+    match first_entity {
+        Some(v) => Ok(super::doc_to_user(&v)),
+        None => Err(ResponseError::NotFound(format!("User {}", email))),
+    }
 }

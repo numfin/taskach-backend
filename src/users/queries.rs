@@ -8,8 +8,7 @@ pub struct QueryUsers;
 impl QueryUsers {
     /// Get a HOOMAN
     async fn getById(user_id: ID, context: &Context) -> FieldResult<super::User> {
-        println!("{:#?}", context.jwt_claims);
-        super::service::get_user(&context.client, user_id)
+        super::service::get_user(&context.client, &user_id)
             .await
             .map_err(FieldError::from)
     }

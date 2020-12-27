@@ -1,26 +1,13 @@
-use crate::firestore::prelude::*;
+use crate::{datastore::prelude::*, users::service::get_user_by_email};
 use actix_web::HttpRequest;
-use operations::FindFilter;
 
 pub async fn authenticate(
     client: &Client,
     auth_data: super::AuthenticationData,
 ) -> Response<super::Session> {
     // Getting user from db
-    let doc = operations::find_doc(
-        client,
-        "users",
-        &[FindFilter::Equal(
-            "email",
-            into_firestore_string(auth_data.email),
-        )],
-        Some(10),
-        None,
-    )
-    .await
-    .map_err(|_| ResponseError::NotFound("User".to_string()))?;
-    // Converting user from dbref to struct
-    let user = crate::users::doc_to_user(&doc);
+    let user = get_user_by_email(client, &auth_data.email).await?;
+
     if !user.active {
         return Err(ResponseError::AuthError("User is not verified".to_string()));
     }

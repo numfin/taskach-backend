@@ -1,2 +1,2 @@
 #!/bin/bash
-gcloud beta emulators firestore start --host-port localhost:8080
+gcloud beta emulators datastore start --host-port localhost:8080

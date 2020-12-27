@@ -3,7 +3,7 @@ pub mod queries;
 pub mod service;
 
 use crate::auth::pwd::create_pwd_hash;
-use crate::firestore::{prelude::*, Value};
+use crate::datastore::{prelude::*, Value};
 use chrono::prelude::*;
 use juniper::ID;
 use std::collections::HashMap;
@@ -27,7 +27,7 @@ pub struct User {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
-pub fn doc_to_user(doc: &Document) -> User {
+pub fn doc_to_user(doc: &Entity) -> User {
     User {
         id: get_id(doc),
         first_name: get_field(doc, "first_name").into_string(),
@@ -36,8 +36,8 @@ pub fn doc_to_user(doc: &Document) -> User {
         phone: get_field(doc, "phone").into_string(),
         active: get_field(doc, "active").into_bool(),
         password_hash: get_field(doc, "password_hash").into_byte_string(),
-        created_at: get_datetime(&doc.create_time),
-        updated_at: get_datetime(&doc.update_time),
+        created_at: get_field(doc, "created_at").into_date_time(),
+        updated_at: get_field(doc, "updated_at").into_date_time(),
     }
 }
 
@@ -52,7 +52,7 @@ pub struct NewUserInput {
 
 pub fn new_user_to_fields(user: NewUserInput) -> Result<HashMap<String, Value>, String> {
     let password = create_pwd_hash(user.password)?;
-    Ok(fields_to_firestore_value(&[
+    Ok(fields_to_db_values(&[
         AppValue::Str("first_name", Some(user.first_name)),
         AppValue::Str("last_name", Some(user.last_name)),
         AppValue::Str("email", Some(user.email)),
@@ -69,7 +69,7 @@ pub struct UpdateUserInput {
     phone: Option<String>,
 }
 pub fn update_user_to_fields(user: UpdateUserInput) -> HashMap<String, Value> {
-    fields_to_firestore_value(&[
+    fields_to_db_values(&[
         AppValue::Str("first_name", user.first_name),
         AppValue::Str("last_name", user.last_name),
         AppValue::Str("phone", user.phone),

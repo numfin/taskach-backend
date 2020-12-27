@@ -1,13 +1,15 @@
 pub mod handlers;
 pub mod mutations;
 pub mod queries;
+pub mod utils;
 
-use crate::firestore::client::ResponseError;
+use crate::auth::Claims;
+use crate::datastore::client::{Client, ResponseError};
 use juniper::{EmptySubscription, RootNode};
 
 pub struct Context {
-    pub client: crate::firestore::client::Client,
-    pub jwt_claims: Result<crate::auth::Claims, ResponseError>,
+    pub client: Client,
+    pub jwt_claims: Result<Claims, ResponseError>,
 }
 impl juniper::Context for Context {}
 
