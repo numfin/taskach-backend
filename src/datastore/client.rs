@@ -35,26 +35,34 @@ pub enum ClientError {
     InvalidEmulatorHost(tonic::codegen::http::uri::InvalidUri),
     TlsConfigError(tonic::transport::Error),
     ConnectionError(tonic::transport::Error),
+    Placeholder,
 }
 
 pub type Client = DatastoreClient<Channel>;
 
-async fn get_channel(
-    datastore_host: &Option<String>,
-) -> Result<tonic::transport::Endpoint, ClientError> {
-    let channel: tonic::transport::Endpoint;
+async fn get_channel(datastore_host: &Option<String>) -> Result<Channel, ClientError> {
+    let mut client: Result<Channel, ClientError> = Err(ClientError::Placeholder);
 
     if let Some(host) = datastore_host.clone() {
-        channel = Channel::from_shared(host).map_err(ClientError::InvalidEmulatorHost)?;
-    } else {
+        client = Channel::from_shared(host)
+            .map_err(ClientError::InvalidEmulatorHost)?
+            .connect()
+            .await
+            .map_err(ClientError::ConnectionError);
+    }
+    if client.is_err() {
         let tls_config = ClientTlsConfig::new()
             .ca_certificate(Certificate::from_pem(CERTIFICATES))
             .domain_name(&SERVICE_URL[8..]);
-        channel = Channel::from_static(SERVICE_URL)
+        client = Channel::from_static(SERVICE_URL)
             .tls_config(tls_config)
             .map_err(ClientError::TlsConfigError)?
+            .connect()
+            .await
+            .map_err(ClientError::ConnectionError);
     }
-    Ok(channel)
+
+    Ok(client?)
 }
 
 fn get_token(use_env: bool) -> gouth::Result<Token> {
@@ -71,11 +79,7 @@ fn get_token(use_env: bool) -> gouth::Result<Token> {
 
 pub async fn create_service() -> Result<DatastoreClient<Channel>, ClientError> {
     let datastore_host = &get_env::datastore_emulator_host();
-    let channel = get_channel(datastore_host)
-        .await?
-        .connect()
-        .await
-        .map_err(ClientError::ConnectionError)?;
+    let channel = get_channel(datastore_host).await?;
 
     let token = get_token(datastore_host.is_some()).map_err(ClientError::TokenError)?;
 

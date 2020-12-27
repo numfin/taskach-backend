@@ -18,7 +18,7 @@ pub async fn update_doc<'a>(
     properties.insert("updated_at".into(), updated_at);
 
     let request = CommitRequest {
-        project_id: get_env::gcp_project(),
+        project_id: get_env::project_id(),
         mode: Mode::NonTransactional.into(),
         mutations: vec![Mutation {
             operation: Some(Operation::Upsert(Entity {

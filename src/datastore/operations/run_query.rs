@@ -14,7 +14,7 @@ pub async fn run_query<'a>(
     let mut client = client.clone();
 
     let query = RunQueryRequest {
-        project_id: get_env::gcp_project(),
+        project_id: get_env::project_id(),
         query_type: Some(QueryType::GqlQuery(GqlQuery {
             named_bindings: named_bindings
                 .iter()
