@@ -74,11 +74,11 @@ impl User {
         Ok(db_values)
     }
 
-    fn update(fields_to_update: UpdateUserInput) -> DbProperties {
+    fn update(user: UpdateUserInput) -> DbProperties {
         fields_to_db_values(&[
-            AppValue::Str("first_name", fields_to_update.first_name),
-            AppValue::Str("last_name", fields_to_update.last_name),
-            AppValue::Str("phone", fields_to_update.phone),
+            AppValue::Str("first_name", user.first_name),
+            AppValue::Str("last_name", user.last_name),
+            AppValue::Str("phone", user.phone),
         ])
     }
 }
