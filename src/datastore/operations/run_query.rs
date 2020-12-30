@@ -31,7 +31,7 @@ pub async fn run_query_id<'a>(
 pub async fn run_query<'a>(
     client: &Client,
     query_string: String,
-    named_bindings: &[(&'a str, Value)],
+    named_bindings: DbProperties,
     positional_bindings: &[Value],
 ) -> Response<QueryResultBatch> {
     let mut client = client.clone();

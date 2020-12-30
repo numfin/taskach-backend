@@ -28,30 +28,34 @@ pub fn normalize_path(path: &PathToRef) -> Vec<PathElement> {
                     }
                 }
                 KeyId::Cuid(id) => Some(IdType::Name(id.to_string())),
+                _ => None,
             },
             kind: kind.0.to_string(),
         })
         .collect()
 }
 
-/// `[(Kind, Id)]` pairs
-pub type PathToRef<'a> = [(KeyKind<'a>, KeyId<'a>)];
+/// `(Kind, Id)` pairs
+pub type PathToRef<'a> = Vec<(KeyKind<'a>, KeyId)>;
 
 /// Kind of entity (Table)
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct KeyKind<'a>(pub &'a str);
 
 /// Id of entity (cuid, i64, etc)
-#[derive(Debug)]
-pub enum KeyId<'a> {
-    Id(&'a ID),
-    Cuid(&'a String),
+#[derive(Debug, Clone)]
+pub enum KeyId {
+    Id(ID),
+    Cuid(String),
+    None,
 }
 
 /// Generate CUID
-pub fn gen_cuid() -> Result<String, String> {
-    cuid().map_err(|err| {
-        println!("{:?}", err.to_string());
-        format!("Cannot create cuid")
-    })
+pub fn gen_cuid() -> Result<ID, String> {
+    cuid()
+        .map_err(|err| {
+            println!("{:?}", err.to_string());
+            format!("Cannot create cuid")
+        })
+        .map(ID::from)
 }

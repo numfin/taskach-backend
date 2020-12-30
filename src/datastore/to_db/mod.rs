@@ -17,7 +17,7 @@ pub fn fields_to_db_values<'a>(fields: &[AppValue<'a>]) -> DbProperties {
 
 pub enum AppValue<'a> {
     Str(&'a str, Option<String>),
-    Ref(&'a str, &'a PathToRef<'a>),
+    Ref(&'a str, Option<&'a PathToRef<'a>>),
     Byte(&'a str, Option<String>),
     Bool(&'a str, Option<bool>),
     Date(&'a str, Option<DateTime<Utc>>),
@@ -27,7 +27,7 @@ impl<'a> AppValue<'a> {
     fn to_db_value(&self) -> Option<(String, Value)> {
         match self {
             AppValue::Str(key, Some(v)) => Some((key.to_string(), insert::to_db_string(v))),
-            AppValue::Ref(key, path_to_ref) => {
+            AppValue::Ref(key, Some(path_to_ref)) => {
                 Some((key.to_string(), insert::to_db_key(path_to_ref)))
             }
             AppValue::Byte(key, Some(v)) => Some((key.to_string(), insert::to_db_bytes(v))),

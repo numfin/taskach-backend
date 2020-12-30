@@ -1,15 +1,16 @@
 use super::User;
 use crate::datastore::prelude::*;
 use juniper::ID;
+use utils::PathToRef;
+
+pub fn get_user_path<'a>(id: &ID) -> PathToRef<'a> {
+    vec![(KeyKind("Users"), KeyId::Cuid(id.to_string()))]
+}
 
 pub async fn get_user(client: &Client, id: &ID) -> Response<Entity> {
-    let entity = operations::run_query_id(
-        client,
-        "Users",
-        &[(KeyKind("Users"), KeyId::Cuid(&id.to_string()))],
-    )
-    .await
-    .or(Err(ResponseError::NotFound(format!("User {}", id))))?;
+    let entity = operations::run_query_id(client, "Users", &get_user_path(id))
+        .await
+        .or(Err(ResponseError::NotFound(format!("User {}", id))))?;
     Ok(entity)
 }
 
@@ -43,7 +44,7 @@ pub async fn create_user(client: &Client, new_user: super::NewUserInput) -> Resp
     let id = gen_cuid().map_err(ResponseError::UnexpectedError)?;
     let user_entity = operations::create_doc(
         client,
-        &[(KeyKind("Users"), KeyId::Cuid(&id))],
+        &get_user_path(&id),
         User::new(new_user).map_err(ResponseError::CreationError)?,
     )
     .await?;
@@ -61,12 +62,7 @@ pub async fn update_user(
         user.insert(k, v);
     }
 
-    let user_entity = operations::update_doc(
-        client,
-        &[(KeyKind("Users"), KeyId::Cuid(&id.to_string()))],
-        user,
-    )
-    .await?;
+    let user_entity = operations::update_doc(client, &get_user_path(id), user).await?;
 
     Ok(User::from(&user_entity))
 }

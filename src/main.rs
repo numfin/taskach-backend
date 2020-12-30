@@ -5,7 +5,7 @@ mod datastore;
 mod graphql;
 mod projects;
 mod scalars;
-// mod stories;
+mod stories;
 mod users;
 
 use actix_cors::Cors;

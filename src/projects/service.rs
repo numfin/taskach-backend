@@ -1,15 +1,16 @@
 use super::Project;
 use crate::datastore::prelude::*;
 use juniper::ID;
+use utils::PathToRef;
+
+pub fn get_project_path<'a>(id: &'a ID) -> PathToRef<'a> {
+    vec![(KeyKind("Projects"), KeyId::Cuid(id.to_string()))]
+}
 
 pub async fn get_project(client: &Client, id: &ID) -> Response<Entity> {
-    let entity = operations::run_query_id(
-        client,
-        "Projects",
-        &[(KeyKind("Projects"), KeyId::Cuid(&id.to_string()))],
-    )
-    .await
-    .or(Err(ResponseError::NotFound(format!("Project {}", id))))?;
+    let entity = operations::run_query_id(client, "Projects", &get_project_path(id))
+        .await
+        .or(Err(ResponseError::NotFound(format!("Project {}", id))))?;
 
     Ok(entity)
 }
@@ -39,12 +40,8 @@ pub async fn create_project(
     new_project: super::NewProjectInput,
 ) -> Response<super::Project> {
     let id = gen_cuid().map_err(ResponseError::UnexpectedError)?;
-    let project_entity = operations::create_doc(
-        client,
-        &[(KeyKind("Projects"), KeyId::Cuid(&id))],
-        Project::new(new_project),
-    )
-    .await?;
+    let project_entity =
+        operations::create_doc(client, &get_project_path(&id), Project::new(new_project)).await?;
 
     Ok(Project::from(&project_entity))
 }
@@ -59,12 +56,7 @@ pub async fn update_project(
         project.insert(k, v);
     }
 
-    let project_entity = operations::update_doc(
-        client,
-        &[(KeyKind("Projects"), KeyId::Cuid(&id.to_string()))],
-        project,
-    )
-    .await?;
+    let project_entity = operations::update_doc(client, &get_project_path(id), project).await?;
 
     Ok(Project::from(&project_entity))
 }
