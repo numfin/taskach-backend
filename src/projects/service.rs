@@ -1,48 +1,70 @@
-use crate::firestore::prelude::*;
+use super::Project;
+use crate::datastore::prelude::*;
 use juniper::ID;
 
-pub async fn get_project(client: &Client, id: ID) -> Response<super::Project> {
-    let doc = operations::get_doc(client, format!("projects/{}", id))
-        .await
-        .map_err(|err| match err {
-            ResponseError::NotFound(_) => ResponseError::NotFound(format!("Project {}", id)),
-            e => e,
-        })?;
-    Ok(super::doc_to_project(&doc))
+pub async fn get_project(client: &Client, id: &ID) -> Response<Entity> {
+    let entity = operations::run_query_id(
+        client,
+        "Projects",
+        &[(KeyKind("Projects"), KeyId::Cuid(&id.to_string()))],
+    )
+    .await
+    .or(Err(ResponseError::NotFound(format!("Project {}", id))))?;
+
+    Ok(entity)
 }
 
-pub async fn get_all_projects(client: &Client) -> Response<Vec<super::Project>> {
-    let docs = operations::get_doc_list(client, "projects".to_string()).await?;
-    Ok(docs
+pub async fn get_all_projects(client: &Client) -> Response<Vec<Project>> {
+    let query_batch = operations::run_query(
+        client,
+        format!("SELECT * FROM Projects"),
+        Default::default(),
+        Default::default(),
+    )
+    .await
+    .or(Err(ResponseError::NotFound("Projects".into())))?;
+
+    Ok(query_batch
+        .entity_results
         .iter()
-        .map(super::doc_to_project)
-        .collect::<Vec<super::Project>>())
+        .filter_map(|entity_result| match &entity_result.entity {
+            Some(entity) => Some(Project::from(entity)),
+            None => None,
+        })
+        .collect())
 }
 
 pub async fn create_project(
     client: &Client,
     new_project: super::NewProjectInput,
 ) -> Response<super::Project> {
-    let doc = operations::create_doc(
+    let id = gen_cuid().map_err(ResponseError::UnexpectedError)?;
+    let project_entity = operations::create_doc(
         client,
-        "projects".to_string(),
-        super::new_project_to_fields(new_project),
+        &[(KeyKind("Projects"), KeyId::Cuid(&id))],
+        Project::new(new_project),
     )
     .await?;
-    Ok(super::doc_to_project(&doc))
+
+    Ok(Project::from(&project_entity))
 }
 
 pub async fn update_project(
     client: &Client,
-    id: ID,
+    id: &ID,
     upd_project: super::UpdateProjectInput,
 ) -> Response<super::Project> {
-    let doc = operations::update_doc(
+    let mut project = get_project(client, id).await?.properties;
+    for (k, v) in Project::update(upd_project).into_iter() {
+        project.insert(k, v);
+    }
+
+    let project_entity = operations::update_doc(
         client,
-        format!("projects/{}", id),
-        super::update_user_to_fields(upd_project),
+        &[(KeyKind("Projects"), KeyId::Cuid(&id.to_string()))],
+        project,
     )
     .await?;
 
-    Ok(super::doc_to_project(&doc))
+    Ok(Project::from(&project_entity))
 }

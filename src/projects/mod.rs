@@ -2,27 +2,32 @@ pub mod mutations;
 pub mod queries;
 pub mod service;
 
-use super::firestore::{prelude::*, Value};
+use super::datastore::prelude::*;
 use chrono::prelude::*;
 use juniper::ID;
-use std::collections::HashMap;
 
 #[derive(juniper::GraphQLObject)]
 #[graphql(description = "Independent project")]
 pub struct Project {
     id: ID,
+    /// project name
     name: String,
+    /// project description
     description: String,
+
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
-pub fn doc_to_project(doc: &Document) -> Project {
-    Project {
-        id: get_id(doc),
-        name: get_field(doc, "name").into_string(),
-        description: get_field(doc, "description").into_string(),
-        created_at: get_datetime(&doc.create_time),
-        updated_at: get_datetime(&doc.update_time),
+
+impl From<&Entity> for Project {
+    fn from(entity: &Entity) -> Self {
+        Self {
+            id: DbValue::Id(entity).into(),
+            name: DbValue::Str("name", entity).into(),
+            description: DbValue::Str("description", entity).into(),
+            created_at: DbValue::Timestamp("created_at", entity).into(),
+            updated_at: DbValue::Timestamp("updated_at", entity).into(),
+        }
     }
 }
 
@@ -31,21 +36,24 @@ pub struct NewProjectInput {
     name: String,
     description: String,
 }
-pub fn new_project_to_fields(project: NewProjectInput) -> DbProperties {
-    fields_to_firestore_value(&[
-        AppValue::Str("name", Some(project.name)),
-        AppValue::Str("description", Some(project.description)),
-    ])
-}
-
 #[derive(juniper::GraphQLInputObject)]
 pub struct UpdateProjectInput {
     name: Option<String>,
     description: Option<String>,
 }
-pub fn update_user_to_fields(project: UpdateProjectInput) -> DbProperties {
-    fields_to_firestore_value(&[
-        AppValue::Str("name", project.name),
-        AppValue::Str("description", project.description),
-    ])
+
+impl Project {
+    fn new(project: NewProjectInput) -> DbProperties {
+        fields_to_db_values(&[
+            AppValue::Str("name", Some(project.name)),
+            AppValue::Str("description", Some(project.description)),
+        ])
+    }
+
+    fn update(project: UpdateProjectInput) -> DbProperties {
+        fields_to_db_values(&[
+            AppValue::Str("name", project.name),
+            AppValue::Str("description", project.description),
+        ])
+    }
 }

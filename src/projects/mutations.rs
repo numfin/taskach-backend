@@ -20,7 +20,7 @@ impl MutationProjects {
         updated_project: super::UpdateProjectInput,
         context: &Context,
     ) -> FieldResult<super::Project> {
-        super::service::update_project(&context.client, project_id, updated_project)
+        super::service::update_project(&context.client, &project_id, updated_project)
             .await
             .map_err(FieldError::from)
     }

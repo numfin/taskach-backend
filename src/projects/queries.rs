@@ -6,9 +6,10 @@ pub struct QueryProjects;
 impl QueryProjects {
     /// Get project by project ID
     async fn getById(project_id: ID, context: &Context) -> FieldResult<super::Project> {
-        super::service::get_project(&context.client, project_id)
+        super::service::get_project(&context.client, &project_id)
             .await
             .map_err(FieldError::from)
+            .map(|entity| super::Project::from(&entity))
     }
 
     /// Get list of projects
