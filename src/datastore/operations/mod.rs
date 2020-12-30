@@ -9,5 +9,4 @@ pub mod operations {
     pub use super::delete_doc::*;
     pub use super::run_query::*;
     pub use super::update_doc::*;
-    pub use super::utils::{gen_cuid, KeyId, KeyKind};
 }

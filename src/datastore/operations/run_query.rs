@@ -1,7 +1,10 @@
 use crate::{app_env::get_env, datastore::prelude::*};
 
 use googapis::google::datastore::v1;
-use v1::{run_query_request::QueryType, Entity, EntityResult, GqlQuery, QueryResultBatch, Value};
+use v1::{
+    run_query_request::QueryType, Entity, EntityResult, GqlQuery, QueryResultBatch,
+    RunQueryRequest, Value,
+};
 
 use super::utils::{value_to_gql_param, PathToRef};
 
@@ -14,7 +17,7 @@ pub async fn run_query_id<'a>(
         client,
         format!("SELECT * FROM {} WHERE __key__ = @1", kind),
         Default::default(),
-        &[to_db_key(entity_path)],
+        &[insert::to_db_key(entity_path)],
     )
     .await
     .or(Err(ResponseError::NotFound(kind.into())))?;

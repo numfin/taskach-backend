@@ -31,7 +31,7 @@ pub struct NewProjectInput {
     name: String,
     description: String,
 }
-pub fn new_project_to_fields(project: NewProjectInput) -> HashMap<String, Value> {
+pub fn new_project_to_fields(project: NewProjectInput) -> DbProperties {
     fields_to_firestore_value(&[
         AppValue::Str("name", Some(project.name)),
         AppValue::Str("description", Some(project.description)),
@@ -43,7 +43,7 @@ pub struct UpdateProjectInput {
     name: Option<String>,
     description: Option<String>,
 }
-pub fn update_user_to_fields(project: UpdateProjectInput) -> HashMap<String, Value> {
+pub fn update_user_to_fields(project: UpdateProjectInput) -> DbProperties {
     fields_to_firestore_value(&[
         AppValue::Str("name", project.name),
         AppValue::Str("description", project.description),

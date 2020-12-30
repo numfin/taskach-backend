@@ -9,10 +9,10 @@ use v1::{commit_request::Mode, mutation::Operation, CommitRequest, Entity, Key, 
 pub async fn update_doc<'a>(
     client: &Client,
     path: &PathToRef<'a>,
-    properties: HashMap<String, Value>,
+    properties: DbProperties,
 ) -> Response<Entity> {
     let mut client = client.clone();
-    let updated_at = to_db_timestamp(&Utc::now());
+    let updated_at = insert::to_db_timestamp(&Utc::now());
 
     let mut properties = HashMap::from(properties);
     properties.insert("updated_at".into(), updated_at);

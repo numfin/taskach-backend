@@ -11,7 +11,7 @@ impl QueryUsers {
         super::service::get_user(&context.client, &user_id)
             .await
             .map_err(FieldError::from)
-            .map(|entity| super::doc_to_user(&entity))
+            .map(|entity| super::User::from(&entity))
     }
 
     /// Get list of HOOMANs

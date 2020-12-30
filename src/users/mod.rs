@@ -3,41 +3,44 @@ pub mod queries;
 pub mod service;
 
 use crate::auth::pwd::create_pwd_hash;
-use crate::datastore::{prelude::*, Value};
+use crate::datastore::prelude::*;
 use chrono::prelude::*;
 use juniper::ID;
-use std::collections::HashMap;
 
 #[derive(juniper::GraphQLObject, Debug, Clone)]
 #[graphql(description = "A user in a taskach system")]
 pub struct User {
     pub id: ID,
-    /// имя
+    /// firstname
     pub first_name: String,
-    /// фамилия
+    /// lastname
     pub last_name: String,
     /// email
     pub email: String,
     /// phone
     pub phone: String,
-    /// активность пользователя
+    /// user is enabled
     pub active: bool,
     #[graphql(skip)]
     pub password_hash: String,
+
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
-pub fn doc_to_user(doc: &Entity) -> User {
-    User {
-        id: get_id(doc),
-        first_name: get_field(doc, "first_name").into_string(),
-        last_name: get_field(doc, "last_name").into_string(),
-        email: get_field(doc, "email").into_string(),
-        phone: get_field(doc, "phone").into_string(),
-        active: get_field(doc, "active").into_bool(),
-        password_hash: get_field(doc, "password_hash").into_byte_string(),
-        created_at: get_field(doc, "created_at").into_date_time(),
-        updated_at: get_field(doc, "updated_at").into_date_time(),
+
+impl From<&Entity> for User {
+    fn from(entity: &Entity) -> Self {
+        Self {
+            id: DbValue::Id(entity).into(),
+            first_name: DbValue::Str("first_name", entity).into(),
+            last_name: DbValue::Str("last_name", entity).into(),
+            email: DbValue::Str("email", entity).into(),
+            phone: DbValue::Str("phone", entity).into(),
+            active: DbValue::Bool("active", entity).into(),
+            password_hash: DbValue::Blob("password_hash", entity).into(),
+            created_at: DbValue::Timestamp("created_at", entity).into(),
+            updated_at: DbValue::Timestamp("updated_at", entity).into(),
+        }
     }
 }
 
@@ -49,39 +52,33 @@ pub struct NewUserInput {
     phone: String,
     password: String,
 }
-
-pub fn new_user_to_fields(user: NewUserInput) -> Result<HashMap<String, Value>, String> {
-    let password = create_pwd_hash(user.password)?;
-    let mut model: HashMap<String, Value> = Default::default();
-    Ok(fields_to_db_values(
-        &mut model,
-        &[
-            AppValue::Str("first_name", Some(user.first_name)),
-            AppValue::Str("last_name", Some(user.last_name)),
-            AppValue::Str("email", Some(user.email)),
-            AppValue::Str("phone", Some(user.phone)),
-            AppValue::Byte("password_hash", Some(password)),
-            AppValue::Bool("active", Some(true)),
-        ],
-    ))
-}
-
 #[derive(juniper::GraphQLInputObject)]
 pub struct UpdateUserInput {
     first_name: Option<String>,
     last_name: Option<String>,
     phone: Option<String>,
 }
-pub fn update_user_to_fields(
-    mut original: HashMap<String, Value>,
-    user: UpdateUserInput,
-) -> HashMap<String, Value> {
-    fields_to_db_values(
-        &mut original,
-        &[
-            AppValue::Str("first_name", user.first_name),
-            AppValue::Str("last_name", user.last_name),
-            AppValue::Str("phone", user.phone),
-        ],
-    )
+
+impl User {
+    fn new(user: NewUserInput) -> Result<DbProperties, String> {
+        let password = create_pwd_hash(user.password)?;
+
+        let db_values = fields_to_db_values(&[
+            AppValue::Str("first_name", Some(user.first_name)),
+            AppValue::Str("last_name", Some(user.last_name)),
+            AppValue::Str("email", Some(user.email)),
+            AppValue::Str("phone", Some(user.phone)),
+            AppValue::Byte("password_hash", Some(password)),
+            AppValue::Bool("active", Some(true)),
+        ]);
+        Ok(db_values)
+    }
+
+    fn update(fields_to_update: UpdateUserInput) -> DbProperties {
+        fields_to_db_values(&[
+            AppValue::Str("first_name", fields_to_update.first_name),
+            AppValue::Str("last_name", fields_to_update.last_name),
+            AppValue::Str("phone", fields_to_update.phone),
+        ])
+    }
 }

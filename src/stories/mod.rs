@@ -50,7 +50,7 @@ pub struct NewStoryInput {
     project_id: ID,
 }
 
-pub fn new_story_to_fields(story: NewStoryInput) -> HashMap<String, Value> {
+pub fn new_story_to_fields(story: NewStoryInput) -> DbProperties {
     fields_to_firestore_value(&[
         AppValue::Str("name", Some(story.name)),
         AppValue::Str("description", Some(story.description)),
@@ -69,7 +69,7 @@ pub struct UpdateStoryInput {
     story_status_id: Option<ID>,
     sprint_id: Option<ID>,
 }
-pub fn update_story_to_fields(story: UpdateStoryInput) -> HashMap<String, Value> {
+pub fn update_story_to_fields(story: UpdateStoryInput) -> DbProperties {
     fields_to_firestore_value(&[
         AppValue::Str("name", story.name),
         AppValue::Str("description", story.description),
