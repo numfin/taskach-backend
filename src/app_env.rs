@@ -3,6 +3,7 @@ pub fn check_env() {
     get_env::session_key();
     get_env::port();
     get_env::project_id();
+    get_env::sendgrid_api_key();
 }
 
 pub mod get_env {
@@ -35,10 +36,16 @@ pub mod get_env {
         }
     }
 
-    pub fn google_application_credentials() -> Option<String> {
-        match var("GOOGLE_APPLICATION_CREDENTIALS") {
-            Ok(creds) if creds.len() > 0 => Some(creds),
-            _ => None,
-        }
+    pub fn sendgrid_from_email() -> String {
+        extract_env("SENDGRID_FROM_EMAIL")
+    }
+    pub fn sendgrid_from_name() -> String {
+        extract_env("SENDGRID_FROM_NAME")
+    }
+    pub fn sendgrid_api_key() -> String {
+        extract_env("SENDGRID_API_KEY")
+    }
+    pub fn sendgrid_template_register() -> String {
+        extract_env("SENDGRID_TEMPLATE_REGISTER")
     }
 }

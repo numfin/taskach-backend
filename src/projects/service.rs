@@ -4,7 +4,7 @@ use juniper::ID;
 use utils::PathToRef;
 
 pub fn get_project_path<'a>(id: &'a ID) -> PathToRef<'a> {
-    vec![(KeyKind("Projects"), KeyId::Cuid(id.to_string()))]
+    vec![(KeyKind("Projects"), KeyId::Cuid(id.clone()))]
 }
 
 pub async fn get_project(client: &Client, id: &ID) -> Response<Entity> {

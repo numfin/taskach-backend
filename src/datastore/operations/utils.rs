@@ -46,7 +46,7 @@ pub struct KeyKind<'a>(pub &'a str);
 #[derive(Debug, Clone)]
 pub enum KeyId {
     Id(ID),
-    Cuid(String),
+    Cuid(ID),
     None,
 }
 

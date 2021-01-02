@@ -1,4 +1,5 @@
 pub mod mutations;
+pub mod pending;
 pub mod queries;
 pub mod service;
 
@@ -19,6 +20,7 @@ pub struct User {
     pub email: String,
     /// phone
     pub phone: String,
+    #[graphql(skip)]
     /// user is enabled
     pub active: bool,
     #[graphql(skip)]
@@ -44,7 +46,7 @@ impl From<&Entity> for User {
     }
 }
 
-#[derive(juniper::GraphQLInputObject)]
+#[derive(juniper::GraphQLInputObject, Clone)]
 pub struct NewUserInput {
     first_name: String,
     last_name: String,
@@ -52,11 +54,13 @@ pub struct NewUserInput {
     phone: String,
     password: String,
 }
-#[derive(juniper::GraphQLInputObject)]
+#[derive(juniper::GraphQLInputObject, Default)]
 pub struct UpdateUserInput {
     first_name: Option<String>,
     last_name: Option<String>,
     phone: Option<String>,
+    /// For internal usage (You cannot change it)
+    active: Option<bool>,
 }
 
 impl User {

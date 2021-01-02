@@ -7,8 +7,8 @@ pub fn create_pwd_hash(pwd: String) -> Result<String, String> {
         .map_err(|_| "Cannot create password".to_string())
 }
 
-pub fn verify_pwd_hash(hash: String, pwd: String) -> bool {
-    match verify_encoded(&hash, pwd.as_bytes()) {
+pub fn verify_pwd_hash(hash: &String, pwd: &String) -> bool {
+    match verify_encoded(hash, pwd.as_bytes()) {
         Ok(result) => result,
         Err(_) => false,
     }

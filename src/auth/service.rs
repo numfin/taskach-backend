@@ -13,7 +13,7 @@ pub async fn authenticate(
     }
     let password_hash = &user.password_hash;
     // If password and password_hash is valid - create jwt from user
-    if super::pwd::verify_pwd_hash(password_hash.to_string(), auth_data.password) {
+    if super::pwd::verify_pwd_hash(&password_hash, &auth_data.password) {
         let jwt = super::jwt::token_from(user).map_err(|err| ResponseError::AuthError(err))?;
         Ok(super::Session { jwt })
     } else {

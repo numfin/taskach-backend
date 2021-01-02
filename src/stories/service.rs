@@ -8,7 +8,7 @@ use utils::PathToRef;
 
 pub fn get_story_path<'a>(project_id: &'a ID, story_id: &'a ID) -> PathToRef<'a> {
     let mut project_path = get_project_path(project_id);
-    project_path.push((KeyKind("Stories"), KeyId::Cuid(story_id.to_string())));
+    project_path.push((KeyKind("Stories"), KeyId::Cuid(story_id.clone())));
     project_path
 }
 

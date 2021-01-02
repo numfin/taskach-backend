@@ -3,6 +3,7 @@ mod auth;
 mod config;
 mod datastore;
 mod graphql;
+mod mail;
 mod projects;
 mod scalars;
 mod stories;

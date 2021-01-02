@@ -1,10 +1,17 @@
-use super::User;
-use crate::datastore::prelude::*;
+use super::{
+    pending::{prepare_user_activation, PendingUser},
+    User,
+};
+use crate::{
+    datastore::prelude::*,
+    mail::{send_mail, templates::MailTemplate},
+};
+use futures::join;
 use juniper::ID;
 use utils::PathToRef;
 
 pub fn get_user_path<'a>(id: &ID) -> PathToRef<'a> {
-    vec![(KeyKind("Users"), KeyId::Cuid(id.to_string()))]
+    vec![(KeyKind("Users"), KeyId::Cuid(id.clone()))]
 }
 
 pub async fn get_user(client: &Client, id: &ID) -> Response<Entity> {
@@ -42,14 +49,34 @@ pub async fn create_user(client: &Client, new_user: super::NewUserInput) -> Resp
         ));
     }
     let id = gen_cuid().map_err(ResponseError::UnexpectedError)?;
-    let user_entity = operations::create_doc(
-        client,
-        &get_user_path(&id),
-        User::new(new_user).map_err(ResponseError::CreationError)?,
-    )
-    .await?;
+    let user = User::new(new_user.clone()).map_err(ResponseError::CreationError)?;
 
-    Ok(User::from(&user_entity))
+    let user_path = get_user_path(&id.clone());
+    let create_user = operations::create_doc(client, &user_path, user);
+    let set_activation = prepare_user_activation(
+        client,
+        PendingUser {
+            email: new_user.email.clone(),
+            user_id: id.clone(),
+        },
+    );
+    if let (Ok(user_entity), Ok(activation_id)) = join!(create_user, set_activation) {
+        send_mail(
+            &new_user.email,
+            MailTemplate::register_confirmation(&activation_id, &new_user.email),
+        )
+        .await
+        .map_err(|err| {
+            println!("{}", err);
+            ResponseError::UnexpectedError("Cannot send email".into())
+        })?;
+
+        Ok(User::from(&user_entity))
+    } else {
+        Err(ResponseError::CreationError(
+            "Cannot create user/activate it".into(),
+        ))
+    }
 }
 
 pub async fn update_user(

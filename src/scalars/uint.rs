@@ -8,7 +8,7 @@ impl std::str::FromStr for PositiveNumber {
     fn from_str(s: &str) -> Result<Self, String> {
         s.parse::<u32>()
             .map(|v| PositiveNumber(v))
-            .map_err(|_| String::from("This is not UInt"))
+            .map_err(|_| String::from("Should be positive integer"))
     }
 }
 
