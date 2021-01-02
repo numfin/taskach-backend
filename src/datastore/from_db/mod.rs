@@ -40,6 +40,9 @@ impl<'a> Into<String> for DbValue<'a> {
         match self {
             DbValue::Str(key, entity) => match extract::field(entity, key) {
                 Some(ValueType::StringValue(v)) => v,
+                _ => "".to_string(),
+            },
+            DbValue::Blob(key, entity) => match extract::field(entity, key) {
                 Some(ValueType::BlobValue(v)) => match std::str::from_utf8(&v) {
                     Ok(v) => v.to_string(),
                     _ => "".to_string(),
