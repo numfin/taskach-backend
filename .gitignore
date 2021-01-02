@@ -1,4 +1,4 @@
 target
 .vscode
-*.session.sql
 gcloud
+.env.sendgrid
